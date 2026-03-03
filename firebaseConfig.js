@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { enableIndexedDbPersistence } from "firebase/firestore";
 
 // 這裡填入你在 Firebase Console 取得的資訊
 
@@ -26,4 +27,12 @@ export const provider = new GoogleAuthProvider();
 // 設定 Google 登入時提示選擇帳號（選用）
 provider.setCustomParameters({
     prompt: 'select_account'
+});
+
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+        console.warn("多個分頁同時開啟，快取僅在一個分頁生效");
+    } else if (err.code == 'unimplemented') {
+        console.warn("當前瀏覽器不支援本地快取");
+    }
 });
