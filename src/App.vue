@@ -1,21 +1,56 @@
 <template>
     <Toast />
-    <Table />
+    <NavBar style="position: fixed; left: 0; top: 0; z-index: 3"/>
+<!--    <NavBar force-logout/>-->
+        <Table />
+<!--    <Search />-->
 </template>
 
-<script setup>
-import Table from './Table.vue';
+<script setup lang="ts">
+import Table from './components/table/Table.vue';
 import Toast from 'primevue/toast';
-
 import { useToast } from "primevue/usetoast";
-const toast = useToast();
+import NavBar from "./components/navbar/NavBar.vue";
+import {onMounted} from "vue";
+import {onAuthStateChanged} from "firebase/auth";
+import {auth} from "./firebase.js";
+import { User } from "firebase/auth";
+import {useAuthStore} from "./stores/auth";
+import Search from "./components/Search.vue";
 
-const testToast = () => {
-    console.log("按鈕被點擊了");
-    toast.add({ severity: 'info', summary: '測試', detail: '如果你看到我，代表設定成功！', life: 3000 });
-};
+// composable
+const toast = useToast();
+const store = useAuthStore();
+
+
+// hook
+onMounted(() => {
+    onAuthStateChanged(auth, async (user: User | null) => {
+        if (user) {
+            store.setCurrentUser(user);
+        } else {
+            store.setCurrentUser(null);
+        }
+    })
+})
 
 </script>
 
 <style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+#app {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+
+
 </style>

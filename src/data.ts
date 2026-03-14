@@ -11,7 +11,8 @@ export type Record = {
     playPtt: number;
 };
 
-export const myRecords = ref<Record[]>([
+export const myRecords: Record[] = [
+    { id: 's000', title: '測試', difficulty: 'FTR', constant: 12.0, score: 1000.4999, playPtt: 14.0000 },
     { id: 's001', title: 'Abstruse Dilemma', difficulty: 'FTR', constant: 11.3, score: 993.9932, playPtt: 12.9997 },
     { id: 's002', title: 'Arghena', difficulty: 'FTR', constant: 11.3, score: 991.8219, playPtt: 12.8911 },
     { id: 's003', title: 'Einherjar Joker', difficulty: 'FTR', constant: 10.9, score: 998.2938, playPtt: 12.8147 },
@@ -98,5 +99,5 @@ export const myRecords = ref<Record[]>([
     { id: 's084', title: 'chronicle-lime', difficulty: 'FTR', constant: 10.5, score: 990.6184, playPtt: 12.0309 },
     { id: 's085', title: 'Primitive lights', difficulty: 'FTR', constant: 10.8, score: 981.7626, playPtt: 11.8881 },
     { id: 's086', title: '最強', difficulty: 'FTR', constant: 11.0, score: 972.6619, playPtt: 11.7554 }
-]);
+];
 
