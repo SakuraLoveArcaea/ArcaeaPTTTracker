@@ -1,6 +1,6 @@
 import { collection, getDocs, doc, setDoc, deleteDoc, DocumentReference } from "firebase/firestore";
 import { db } from "../firebase";
-import { Record } from "../data";
+import { Record } from "../record";
 import { User } from "firebase/auth";
 
 /**
@@ -27,7 +27,8 @@ export const fetchRecords = async (currentUser: User): Promise<Record[]> => {
             difficulty: data.difficulty || 'FTR',
             constant: data.constant || 0,
             score: data.score || 0,
-            playPtt: data.playPtt || 0
+            playPtt: data.playPtt || 0,
+            lastUpdate: data.lastUpdate || null
         });
     });
     // Sort by playPtt in descending order

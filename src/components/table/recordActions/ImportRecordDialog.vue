@@ -1,17 +1,9 @@
 <template>
     <Dialog v-model:visible="visible" modal header="匯入 JSON 紀錄" :style="{ width: '90vw', maxWidth: '600px' }">
-        <div class="flex flex-col gap-4 mt-2">
+        <div>
             <div class="import-instructions">
                 <p>請將您的成績資料以 <b>JSON 陣列</b> 的格式貼在下方。</p>
-                <pre class="code-example">
-[
-  {
-    "title": "Abstruse Dilemma",
-    "difficulty": "FTR",
-    "constant": 11.3,
-    "score": 9939932
-  }
-]</pre>
+                <pre class="code-example">{{ prompt }}</pre>
             </div>
             <div class="options-container">
                 <div class="font-bold text-gray-700 mb-2">匯入選項：</div>
@@ -24,7 +16,7 @@
                     <label for="optClear" class="cursor-pointer font-bold" :class="{'text-red-500': clearAll}">⚠️ 匯入前清空您的所有紀錄</label>
                 </div>
             </div>
-            <Textarea v-model="jsonString" rows="8" placeholder="請在此貼上 JSON 陣列..." class="w-full font-mono text-sm mt-2" />
+            <Textarea v-model="jsonString" rows="8" placeholder="請在此貼上 JSON 陣列..." autofocus />
         </div>
         <template #footer>
             <Button label="取消" icon="pi pi-times" outlined severity="secondary" @click="close" />
@@ -44,6 +36,15 @@ import { useToast } from "primevue/usetoast";
 const visible = defineModel('visible', { type: Boolean, default: false });
 const emit = defineEmits(['import']);
 const toast = useToast();
+
+const prompt = `[
+  {
+    "title": "Abstruse Dilemma",
+    "difficulty": "FTR",
+    "constant": 11.3,
+    "score": 9939932
+  }
+]`
 
 const jsonString = ref('');
 const overwrite = ref(true);

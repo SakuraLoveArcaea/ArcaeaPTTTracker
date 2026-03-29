@@ -113,7 +113,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { Difficulty, myRecords, Record } from "../../data";
+import { Difficulty, myRecords, Record } from "../../record";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputNumber from 'primevue/inputnumber';

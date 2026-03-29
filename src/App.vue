@@ -1,9 +1,12 @@
 <template>
     <Toast />
-    <NavBar style="position: fixed; left: 0; top: 0; z-index: 3"/>
-<!--    <NavBar force-logout/>-->
-        <Table />
 <!--    <Search />-->
+<!--    <LogBaseUpdateView />-->
+    <NavBar style="position: sticky; left: 0; top: 0; z-index: 3"/>
+<!--    <NavBar force-logout/>-->
+<!--        <Table />-->
+    <TableView />
+
 </template>
 
 <script setup lang="ts">
@@ -17,6 +20,10 @@ import {auth} from "./firebase.js";
 import { User } from "firebase/auth";
 import {useAuthStore} from "./stores/auth";
 import Search from "./components/Search.vue";
+import TableView from "./components/table/TableView.vue";
+import RecordsActions from "./components/table/recordActions/RecordsActions.vue";
+import RecordsTable from "./components/table/recordTable/RecordsTable.vue";
+import LogBaseUpdateView from "./components/admin/logBaseUpdateView.vue";
 
 // composable
 const toast = useToast();

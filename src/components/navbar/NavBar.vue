@@ -89,7 +89,6 @@ const executeLogout = async () => {
 
 <style scoped>
 .navbar {
-    width: 100vw;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
