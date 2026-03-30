@@ -1,45 +1,3 @@
-<script setup lang="ts">
-// UIs
-import { Button } from "primevue";
-//
-import { useToast } from "primevue/usetoast";
-import { useAuthStore } from "../../stores/auth";
-import { useRecordsStore } from "../../stores/records";
-import { storeToRefs } from "pinia";
-import { ConfirmActionDialog } from "../dialogs";
-import { ref } from "vue";
-
-// composable
-const toast = useToast();
-const store = useAuthStore();
-const recordsStore = useRecordsStore();
-
-// refs
-const currentUser = storeToRefs(store).currentUser;
-const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
-
-const showLogoutDialog = ref(false);
-
-// marco
-defineProps({
-    'forceLogout': {
-        type: Boolean,
-        default: false
-    }
-});
-
-const requestLogout = () => {
-    showLogoutDialog.value = true;
-};
-
-const executeLogout = async () => {
-    await store.signOut(toast);
-    // 登出後做的事情：清除雲端紀錄，切換回本機資料
-    recordsStore.initLoad();
-    showLogoutDialog.value = false;
-};
-</script>
-
 <template>
     <nav class="navbar">
         <h2>Arcaea PTT Tracker</h2>
@@ -49,7 +7,7 @@ const executeLogout = async () => {
                 B30 平均：<span class="text-primary text-lg" >{{ b30Avg.toFixed(4) }}</span>
             </div>
             <div class="stat-box">
-                R10 平均：<span class="text-primary text-lg">{{ r10Avg.toFixed(4) }}</span>
+                最高R10 平均：<span class="text-primary text-lg">{{ r10Avg.toFixed(4) }}</span>
             </div>
             <div class="stat-box">
                 預估最高 PTT：<span class="text-primary text-lg">{{ maxPtt.toFixed(4) }}</span>
@@ -69,7 +27,7 @@ const executeLogout = async () => {
                 <Button label="登出" severity="danger" @click="requestLogout"/>
             </div>
             <div v-else class="user-login">
-                <Button label="登入" severity="success" @click="store.signIn(toast)" />
+                <Button label="登入" severity="success" @click="authStore.signIn(toast)" />
             </div>
         </div>
 
@@ -84,8 +42,62 @@ const executeLogout = async () => {
             @accept="executeLogout" 
             @cancel="showLogoutDialog = false"
         />
+
+
+
     </nav>
 </template>
+
+<script setup lang="ts">
+// UIs
+import { Button } from "primevue";
+//
+import { useToast } from "primevue/usetoast";
+import { useAuthStore } from "../../stores/authStore";
+import { useRecordsStore } from "../../stores/recordsStore";
+import { storeToRefs } from "pinia";
+import { ConfirmActionDialog } from "../dialogs";
+import { ref } from "vue";
+import {calculatePlayPtt} from "../../utils/arcaea";
+import type {Record} from "../../record";
+import AddRecordDialog from "../table/recordActions/AddRecordDialog.vue";
+
+// composable
+const toast = useToast();
+const authStore = useAuthStore();
+const recordsStore = useRecordsStore();
+
+// refs
+const { currentUser } = storeToRefs(authStore);
+const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
+const { records, isLoading } = storeToRefs(recordsStore);
+const { isDeleteDialogOpen, isAddDialogOpen, recordToDelete } = storeToRefs(recordsStore)
+const { addRecord, updateRecord, deleteRecord, exportRecordsToJson } = recordsStore
+
+const showLogoutDialog = ref(false);
+
+// marco
+defineProps({
+    'forceLogout': {
+        type: Boolean,
+        default: false
+    }
+});
+
+const requestLogout = () => {
+    showLogoutDialog.value = true;
+};
+
+const executeLogout = async () => {
+    await authStore.signOut(toast);
+    // 登出後做的事情：清除雲端紀錄，切換回本機資料
+    recordsStore.initLoad();
+    showLogoutDialog.value = false;
+};
+
+
+
+</script>
 
 <style scoped>
 .navbar {

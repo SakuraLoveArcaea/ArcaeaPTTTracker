@@ -1,5 +1,5 @@
 <template>
-    <div class="actions-container" @keydown="onkeydown">
+    <div class="actions-container">
         <Button
             label="匯出"
             icon="pi pi-download"
@@ -67,14 +67,7 @@ const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: bool
     showImportDialog.value = false; // 送出後關閉彈窗
 };
 
-const onkeydown = async (e: KeyboardEvent) => {
-    // cmd+N 處罰新增紀錄按鈕
-    if ((e.metaKey || e.ctrlKey) && e.code === 'KeyN') {
-        e.preventDefault();
-        console.log("press");
-        showAddDialog.value = true;
-    }
-}
+
 </script>
 
 <style scoped>

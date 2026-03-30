@@ -6,11 +6,10 @@ import {auth} from "../firebase";
 import {signOut as _signOut} from "firebase/auth";
 
 export const useAuthStore = defineStore('auth', () => {
-    // 1. State: 存放登入資訊
+    // Pinia自動解包
     const currentUser = ref<User | null>(null)
     const token = ref(null)
 
-    // 2. Getters: 計算屬性 (例如判斷是否已登入)
     const isLoggedIn = computed(() => !!currentUser.value)
 
     // 3. Actions: 修改狀態的方法 (處理 Google 登入邏輯)
