@@ -7,12 +7,6 @@
                 <span v-else>點擊儲存格直接編輯。按 <b>Enter</b> 儲存，按 <b>Esc</b> 取消。點擊最左側的<b>「排名 (#)」</b>可刪除該筆紀錄。</span>
             </div>
 
-<!--            <RecordsActions-->
-<!--                class="bottom-actions"-->
-<!--                @request-add="handleAddFromDialog"-->
-<!--                @request-import="handleImportData"-->
-<!--                @request-export="exportToJson"-->
-<!--            />-->
 
             <RecordsActions
                 @request-add="onAddRecordForm"
