@@ -28,7 +28,8 @@ export const fetchRecords = async (currentUser: User): Promise<Record[]> => {
             constant: data.constant || 0,
             score: data.score || 0,
             playPtt: data.playPtt || 0,
-            lastUpdate: data.lastUpdate || null
+            lastUpdate: data.lastUpdate || null,
+            autoUpdate: data.autoUpdate || false
         });
     });
     // Sort by playPtt in descending order

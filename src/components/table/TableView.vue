@@ -255,7 +255,6 @@ const handleAddFromDialog = async (form: any) => {
             lastUpdate: Date.now(),
             autoUpdate // 寫入是否自動更新屬性
         } as Record;
-        console.log(recordToSave)
         await addRecord(recordToSave);
     }
 };
@@ -332,6 +331,7 @@ const addRecord = async (newRecord: Record) => {
     records.value.unshift(newRecord);
     records.value.sort((a, b) => b.playPtt - a.playPtt);
     const newRankIndex = records.value.findIndex(r => r.id === newRecord.id);
+    console.log(newRecord)
 
     if (currentUser.value) {
         try {
