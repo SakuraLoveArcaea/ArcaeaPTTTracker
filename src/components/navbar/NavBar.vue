@@ -72,7 +72,7 @@ const { currentUser } = storeToRefs(authStore);
 const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
 const { records, isLoading } = storeToRefs(recordsStore);
 const { isDeleteDialogOpen, isAddDialogOpen, recordToDelete } = storeToRefs(recordsStore)
-const { addRecord, updateRecord, deleteRecord, exportRecordsToJson } = recordsStore
+const { addRecord, updateRecord, deleteRecord, onExportRecordsToJson } = recordsStore
 
 const showLogoutDialog = ref(false);
 

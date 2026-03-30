@@ -2,11 +2,13 @@
     <Toast />
 <!--    <Search />-->
 <!--    <LogBaseUpdateView />-->
-    <NavBar style="position: sticky; left: 0; top: 0; z-index: 3"/>
+<!--    <NavBar style="position: sticky; left: 0; top: 0; z-index: 3"/>-->
 <!--    <NavBar force-logout/>-->
 <!--        <Table />-->
-    <TableView />
-    <AddRecordDialog v-model:visible="isAddDialogOpen" @save="handleSave"/>
+<!--    <TableView />-->
+<!--    <AddRecordDialog v-model:visible="isAddDialogOpen" @save="handleSave"/>-->
+    <AdminView />
+
 
 </template>
 
@@ -20,7 +22,6 @@ import {onAuthStateChanged} from "firebase/auth";
 import {auth} from "./firebase.js";
 import { User } from "firebase/auth";
 import {useAuthStore} from "./stores/authStore";
-import Search from "./components/Search.vue";
 import TableView from "./components/table/TableView.vue";
 import RecordsActions from "./components/table/recordActions/RecordsActions.vue";
 import RecordsTable from "./components/table/recordTable/RecordsTable.vue";
@@ -28,6 +29,8 @@ import LogBaseUpdateView from "./components/admin/logBaseUpdateView.vue";
 import AddRecordDialog from "./components/table/recordActions/AddRecordDialog.vue";
 import {storeToRefs} from "pinia";
 import {useRecordsStore} from "./stores/recordsStore";
+import Search from "@/components/Search.vue";
+import AdminView from "@/components/admin/AdminView.vue";
 
 // composable
 const recordsStore = useRecordsStore();

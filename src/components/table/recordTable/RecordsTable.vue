@@ -5,7 +5,7 @@
             :loading="isLoading"
             size="small"
             sort-field="playPtt"
-            sort-order="-1"
+            :sort-order="-1"
             edit-mode="cell"
             @cell-edit-init="onCellEditInit"
             @cell-edit-complete="onCellEditComplete"
@@ -146,7 +146,7 @@ const props = defineProps({
 
 const emit = defineEmits<{
     // 傳遞新資料以及成功/失敗的回呼函數
-    (e: 'request-update', payload: { updatedData: Record, field: String, onSuccess: () => void, onError: () => void }): void;
+    (e: 'request-update', payload: { updatedData: Record, field: string, onSuccess: () => void, onError: () => void }): void;
     (e: 'request-delete', record: Record): void;
 }>();
 

@@ -151,7 +151,14 @@ const performSearch = async () => {
                 },
             ],
         });
-        filteredSongs.value = results[0].hits;
+        // The `results` array from a multiple query can contain different types of responses.
+        // We need a type guard to ensure we are dealing with a standard search response that contains 'hits'.
+        const searchResult = results[0];
+        if (searchResult && 'hits' in searchResult) {
+            filteredSongs.value = searchResult.hits;
+        } else {
+            filteredSongs.value = [];
+        }
         showSuggestions.value = filteredSongs.value.length > 0;
     } catch (error) {
         console.error('Algolia 搜尋失敗:', error);
@@ -242,8 +249,6 @@ const resetForm = (fullReset = false) => {
     availableDifficulties.value = [...allDifficulties];
     // splitScore.value = { part1: null, part2: null };
 };
-
-// 按下重新輸入時呼叫，完整清空並聚焦標題
 
 // 按下重新輸入時呼叫，完整清空並聚焦標題
 const clearSelection = async () => {

@@ -13,7 +13,7 @@
                 :loading="isLoading"
                 size="small"
                 sort-field="playPtt"
-                sort-order="-1"
+                :sort-order="-1"
                 edit-mode="cell"
                 class="editable-cells-table shadow-sm rounded-lg overflow-hidden"
                 @cell-edit-init="onCellEditInit"
@@ -70,7 +70,7 @@
                     <template #body="slotProps"><div class="cell-content justify-center">{{ slotProps.data.score.toFixed(4) }}</div></template>
                     <template #editor="slotProps"><InputNumber v-model="slotProps.data.score" :minFractionDigits="4" :maxFractionDigits="4" autofocus fluid class="full-width-input" /></template>
                 </Column>
-                <Column field="playPtt" sortable="desc" style="width: 100px;" headerStyle="text-align: center;">
+                <Column field="playPtt" :sortable="true" style="width: 100px;" headerStyle="text-align: center;">
                     <template #header><div class="cell-content font-bold justify-center"><b>playPtt</b></div></template>
                     <template #body="slotProps"><div class="cell-content justify-center font-bold ptt-text">{{ slotProps.data.playPtt.toFixed(4) }}</div></template>
                 </Column>

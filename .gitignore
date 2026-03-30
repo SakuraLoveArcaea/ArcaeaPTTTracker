@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+server/ptttracker-e40bd-firebase-adminsdk-fbsvc-7e32e970f8.json

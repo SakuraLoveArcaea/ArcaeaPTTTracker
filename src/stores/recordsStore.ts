@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { Record } from '../record';
-import { fetchRecords, addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from '../utils/firestore';
+import { Record } from '@/record';
+import { fetchRecords, addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from '@/utils/firestore';
 import { useAuthStore } from './authStore';
-import {useToast} from "primevue";
 import {useUIStore} from "./uiStore";
-import {calculatePlayPtt} from "../utils/arcaea";
+import {calculatePlayPtt} from "@/utils/arcaea";
 
 const LOCAL_STORAGE_KEY = 'arcaea_local_records';
 
