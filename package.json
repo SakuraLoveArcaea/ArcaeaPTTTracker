@@ -1,41 +1,19 @@
 {
-  "name": "my-arcaea-tracker",
+  "name": "arcaea-ptt-tracker",
+  "workspaces": [
+    "apps/*"
+  ],
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.5",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev-host": "vite --host",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "frontend": "pnpm --filter frontend dev",
+    "server": "pnpm --filter server server-start",
+    "frontend-dev-host": "pnpm --filter frontend dev-host"
+
   },
-  "dependencies": {
-    "@primevue/themes": "^4.5.4",
-    "@tailwindcss/vite": "^4.2.1",
-    "algoliasearch": "^5.49.2",
-    "chart.js": "^4.5.1",
-    "cors": "^2.8.6",
-    "firebase": "^12.10.0",
-    "firebase-admin": "^13.7.0",
-    "fuse.js": "^7.1.0",
-    "lodash": "^4.17.23",
-    "pinia": "^3.0.4",
-    "primeicons": "^7.0.0",
-    "primevue": "^4.5.4",
-    "vue": "^3.5.25",
-    "vue-chartjs": "^5.3.3",
-    "vue-router": "^5.0.4"
-  },
-  "devDependencies": {
-    "@types/lodash": "^4.17.24",
-    "@vitejs/plugin-vue": "^6.0.2",
-    "autoprefixer": "^10.4.27",
-    "gh-pages": "^6.3.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.2.1",
-    "vite": "^7.3.1"
-  },
-  "homepage": "https://SakuraLoveArcaea.github.io/ArcaeaPTTTracker"
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

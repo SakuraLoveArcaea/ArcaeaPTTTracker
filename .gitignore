@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+apps/frontend/node_modules
+apps/server/node_modules
 node_modules
 dist
 dist-ssr
@@ -23,4 +25,4 @@ dist-ssr
 *.sln
 *.sw?
 
-server/ptttracker-e40bd-firebase-adminsdk-fbsvc-7e32e970f8.json
+/apps/server/ptttracker-e40bd-firebase-adminsdk-fbsvc-7e32e970f8.json
