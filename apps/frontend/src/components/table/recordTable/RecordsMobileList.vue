@@ -92,7 +92,7 @@
                                         {{ record.lastUpdate ? new Date(record.lastUpdate).toLocaleString('zh-TW', { hour12: false }) : '-' }}
                                     </span>
                                 </div>
-                                <div v-if="UIStore.useExperimentalPttEstimation" class="detail-item chart-detail-item-mobile">
+                                <div v-if="UIStore.useExperimentalPttEstimation" class="detail-item chart-detail-item-mobile full-width">
                                     <span class="detail-label">分數 PTT 估算</span>
                                     <InlinePttChart :record="record" :mini="true" />
                                 </div>
@@ -690,6 +690,8 @@ const getCardStyle = (lastUpdate: number) => {
     border: none !important;
     margin-top: 0 !important;
     gap: 0.35rem !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
 
     .chart-container-inline {
       height: 100px !important; // 確保高度在手機卡片中為 100px

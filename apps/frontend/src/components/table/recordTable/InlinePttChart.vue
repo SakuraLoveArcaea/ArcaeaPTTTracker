@@ -366,8 +366,9 @@ const chartOptions = computed(() => {
     border: none; // 移除外框線
     border-radius: 10px;
     width: 100%;
+    max-width: 360px; /* 設定最大寬度 */
+    margin: 0.5rem auto 0 auto; /* 居中 */
     box-sizing: border-box;
-    margin-top: 0.5rem;
 }
 
 .chart-header-info {
@@ -456,7 +457,8 @@ const chartOptions = computed(() => {
     border-radius: 6px;
     box-shadow: none;
     gap: 0.25rem;
-    margin-top: 0;
+    max-width: 360px; /* 設定最大寬度 */
+    margin: 0 auto; /* 居中 */
 }
 
 // 日間模式微調
