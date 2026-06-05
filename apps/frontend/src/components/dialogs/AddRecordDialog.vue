@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal :header="dialogHeader" position="bottom" :style="{ width: '90vw', maxWidth: '400px' }">
+    <Dialog v-model:visible="visible" modal :header="dialogHeader" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '400px', maxHeight: '90vh' }">
         <div class="form-container">
             <div class="field-group">
                 <div class="field-header">
@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, useTemplateRef, computed } from 'vue';
+import { ref, watch, nextTick, useTemplateRef, computed, onMounted, onUnmounted } from 'vue';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
@@ -107,6 +107,25 @@ const visible = defineModel('visible', { type: Boolean, default: false });
 const emit = defineEmits(['save']);
 
 const UIStore = useUIStore();
+
+const isMobile = ref(false);
+let mediaQuery: MediaQueryList | null = null;
+
+const handleMediaQuery = (e: MediaQueryListEvent | MediaQueryList) => {
+    isMobile.value = e.matches;
+};
+
+onMounted(() => {
+    mediaQuery = window.matchMedia('(max-width: 768px)');
+    isMobile.value = mediaQuery.matches;
+    mediaQuery.addEventListener('change', handleMediaQuery);
+});
+
+onUnmounted(() => {
+    if (mediaQuery) {
+        mediaQuery.removeEventListener('change', handleMediaQuery);
+    }
+});
 
 // 使用 computed 計算 Dialog 標題與按鈕文字
 const dialogHeader = computed(() => UIStore.editingRecord ? '修改成績紀錄' : '新增成績紀錄');

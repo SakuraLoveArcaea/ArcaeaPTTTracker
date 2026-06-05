@@ -3,8 +3,6 @@
         <!-- 電腦版傳統表格 -->
         <div class="desktop-only-table">
             <DataTable
-                v-model:expandedRows="expandedRows"
-                dataKey="id"
                 :value="records"
                 :loading="isLoading"
                 size="small"
@@ -57,21 +55,14 @@
                 </Column>
 
                 <!-- 3. 上次更新 欄位 -->
-                <Column v-if="visibleColumns.includes('lastUpdate')" key="lastUpdate" field="lastUpdate" class="column-lastUpdate" style="width: 120px">
+                <Column v-if="visibleColumns.includes('lastUpdate')" key="lastUpdate" field="lastUpdate" class="column-lastUpdate" style="width: 100px">
                     <template #header>
                         <span class="header">上次更新</span>
                     </template>
                     <template #body="{ data }">
-                        <div class="body date-col-content">
-                            <span class="date-text">
-                                <small>{{ data.lastUpdate ? new Date(data.lastUpdate).toLocaleDateString() : '-' }}</small>
-                            </span>
-                            <span v-if="UIStore.useExperimentalPttEstimation" class="ptt-est-link-container">
-                                <a href="javascript:void(0)" class="ptt-est-link" @click.stop="toggleRow(data)">
-                                    📊 PTT 估算
-                                </a>
-                            </span>
-                        </div>
+                        <span class="body date-text">
+                            <small>{{ data.lastUpdate ? new Date(data.lastUpdate).toLocaleDateString() : '-' }}</small>
+                        </span>
                     </template>
                 </Column>
 
@@ -126,12 +117,7 @@
                     </template>
                 </Column>
 
-                <!-- Row Expansion Template for Inline PTT Estimation Chart -->
-                <template #rowexpansion="{ data }">
-                    <div class="row-expansion-container">
-                        <InlinePttChart :record="data" />
-                    </div>
-                </template>
+
             </DataTable>
         </div>
 
@@ -171,20 +157,9 @@ import Select from "primevue/select";
 import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
 import RecordsMobileList from "./RecordsMobileList.vue";
-import InlinePttChart from "./InlinePttChart.vue";
 import { useUIStore } from "@/stores/uiStore";
 
 const UIStore = useUIStore();
-const expandedRows = ref<any[]>([]);
-
-const toggleRow = (data: Record) => {
-    const idx = expandedRows.value.findIndex(r => r.id === data.id);
-    if (idx > -1) {
-        expandedRows.value.splice(idx, 1);
-    } else {
-        expandedRows.value.push(data);
-    }
-};
 
 const props = defineProps({
     records: {
@@ -506,48 +481,7 @@ const getTitleStyle = (lastUpdate: number) => {
   color: var(--text-muted);
 }
 
-.date-col-content {
-  flex-direction: column;
-  height: auto !important;
-  min-height: 40px;
-  gap: 0.25rem;
-  padding: 0.25rem 0;
-}
 
-.ptt-est-link-container {
-  display: inline-flex;
-  align-items: center;
-}
-
-.ptt-est-link {
-  font-size: 0.75rem;
-  color: #3b82f6;
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: #60a5fa;
-    text-decoration: underline;
-  }
-}
-
-.row-expansion-container {
-  padding: 0.75rem 1.25rem;
-  background: rgba(30, 41, 59, 0.2);
-  border-bottom: 1px solid var(--border-color);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-:deep(.p-datatable-row-expansion) {
-  background: rgba(15, 23, 42, 0.05) !important;
-  
-  > td {
-    padding: 0 !important;
-  }
-}
 
 // 編輯器尺寸一致化
 .editor {

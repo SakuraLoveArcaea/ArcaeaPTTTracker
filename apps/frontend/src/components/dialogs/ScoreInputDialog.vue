@@ -397,6 +397,7 @@ const onConfirm = () => {
     user-select: none;
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 
     &.active {
         border-color: #3b82f6 !important;
@@ -461,6 +462,7 @@ const onConfirm = () => {
     transition: all 0.15s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 
     &:active {
         transform: scale(0.95);

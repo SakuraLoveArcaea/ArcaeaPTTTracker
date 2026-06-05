@@ -39,8 +39,10 @@ import { storeToRefs } from 'pinia';
 
 const highchartsRef = ref<any>(null);
 let updateTimeoutId: any = null;
+const isInteracting = ref(false);
 
 const handleTouchEnd = () => {
+    isInteracting.value = false;
     initScore();
 };
 
@@ -78,8 +80,8 @@ const minScore = computed(() => {
         preferredStart = 9800000;
     }
     
-    // 確保當前紀錄分數如果比設定的起點還低時，圖表仍能包含它
-    return Math.max(dynamicMin, Math.min(preferredStart, currentScoreValue.value));
+    // 不再動態延伸包含低於起點的分數，直接使用設定的起點（大於 0 PTT 的分數）
+    return Math.max(dynamicMin, preferredStart);
 });
 
 // 當前選取分數，預設為該 record 目前的分數 (轉成 7 位整數形式)
@@ -120,6 +122,12 @@ const updatePlotLine = (value: number) => {
         const chart = highchartsRef.value.chart;
         const xAxis = chart.xAxis[0];
         xAxis.removePlotLine('selected-score-line');
+        
+        // 如果實際分數低於圖表起點，且使用者目前沒有進行觸碰互動，就不顯示藍線
+        if (currentScoreValue.value < minScore.value && !isInteracting.value) {
+            return;
+        }
+
         xAxis.addPlotLine({
             id: 'selected-score-line',
             value: value,
@@ -175,13 +183,12 @@ watch(() => props.record, () => {
     }, 50);
 }, { deep: true });
 
-// 產生 Highcharts 數據點
-const chartData = computed(() => {
+// 產生 Highcharts 預估折線數據點
+const lineData = computed(() => {
     const constant = props.record.constant;
     const start = minScore.value;
     const end = 10000000;
     const step = 1000;
-    const actualScore = currentScoreValue.value;
     
     const pointsMap = new Map<number, any>();
     
@@ -200,9 +207,19 @@ const chartData = computed(() => {
         });
     }
     
-    // 2. 插入實際成績點，並加上專屬紅色 Marker 標記！
+    // 排序並轉回陣列
+    return Array.from(pointsMap.values()).sort((a, b) => a.x - b.x);
+});
+
+// 產生獨立的當前實際成績點數據
+const actualScorePointData = computed(() => {
+    const constant = props.record.constant;
+    const actualScore = currentScoreValue.value;
+    const start = minScore.value;
+    const end = 10000000;
+    
     if (actualScore >= start && actualScore <= end) {
-        pointsMap.set(actualScore, {
+        return [{
             x: actualScore,
             y: calculatePlayPtt(constant, actualScore),
             marker: {
@@ -213,15 +230,14 @@ const chartData = computed(() => {
                 lineWidth: 1.5,
                 states: {
                     hover: {
+                        enabled: true,
                         radius: props.mini ? 4.5 : 5.5
                     }
                 }
             }
-        });
+        }];
     }
-    
-    // 3. 排序並轉回陣列
-    return Array.from(pointsMap.values()).sort((a, b) => a.x - b.x);
+    return [];
 });
 
 // Highcharts 選項設定
@@ -289,6 +305,8 @@ const chartOptions = computed(() => {
                 const point = this.points ? this.points[0].point : this.point;
                 const xVal = point.x;
                 
+                isInteracting.value = true;
+                
                 if (updateTimeoutId) {
                     clearTimeout(updateTimeoutId);
                 }
@@ -300,18 +318,40 @@ const chartOptions = computed(() => {
             }
         },
         legend: { enabled: false },
-        series: [{
-            name: '預估 PTT',
-            data: chartData.value,
-            color: isDarkTheme.value ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.4)',
-            lineWidth: props.mini ? 2 : 2.5,
-            marker: { enabled: false },
-            states: {
-                hover: {
-                    lineWidthPlus: 0.5
+        series: [
+            {
+                name: '預估 PTT',
+                type: 'line',
+                data: lineData.value,
+                color: isDarkTheme.value ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.4)',
+                lineWidth: props.mini ? 2 : 2.5,
+                marker: {
+                    enabled: false,
+                    states: {
+                        hover: {
+                            enabled: false
+                        }
+                    }
+                },
+                states: {
+                    hover: {
+                        lineWidthPlus: 0.5
+                    }
+                }
+            },
+            {
+                name: '當前成績',
+                type: 'line',
+                data: actualScorePointData.value,
+                lineWidth: 0,
+                linkedTo: ':previous',
+                states: {
+                    hover: {
+                        lineWidthPlus: 0
+                    }
                 }
             }
-        }]
+        ]
     };
 });
 </script>
@@ -410,10 +450,10 @@ const chartOptions = computed(() => {
 }
 
 .inline-ptt-chart-container.mini-container {
-    padding: 0;
-    background: transparent;
-    border: none;
-    border-radius: 0;
+    padding: 0.4rem 0.5rem;
+    background: rgba(15, 23, 42, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
     box-shadow: none;
     gap: 0.25rem;
     margin-top: 0;
@@ -422,6 +462,9 @@ const chartOptions = computed(() => {
 // 日間模式微調
 :root:not(.p-dark) {
     .inline-ptt-chart-container {
+        background: rgba(15, 23, 42, 0.02);
+    }
+    .inline-ptt-chart-container.mini-container {
         background: rgba(15, 23, 42, 0.02);
     }
 }

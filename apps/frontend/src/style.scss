@@ -93,6 +93,7 @@
 html, body {
   overflow-x: hidden;
   width: 100%;
+  touch-action: manipulation;
 }
 
 body {

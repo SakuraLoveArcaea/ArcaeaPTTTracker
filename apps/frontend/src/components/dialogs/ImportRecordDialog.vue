@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal header="匯入 JSON 紀錄" :style="{ width: '90vw', maxWidth: '600px' }">
+    <Dialog v-model:visible="visible" modal header="匯入 JSON 紀錄" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '600px', maxHeight: '90vh' }">
         <div class="import-dialog-content">
             <div class="import-instructions">
                 <p class="instruction-title">請將您的成績資料以 <b>JSON 陣列</b> 的格式貼在下方。</p>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
@@ -40,6 +40,25 @@ import { useToast } from "primevue/usetoast";
 const visible = defineModel('visible', { type: Boolean, default: false });
 const emit = defineEmits(['import']);
 const toast = useToast();
+
+const isMobile = ref(false);
+let mediaQuery: MediaQueryList | null = null;
+
+const handleMediaQuery = (e: MediaQueryListEvent | MediaQueryList) => {
+    isMobile.value = e.matches;
+};
+
+onMounted(() => {
+    mediaQuery = window.matchMedia('(max-width: 768px)');
+    isMobile.value = mediaQuery.matches;
+    mediaQuery.addEventListener('change', handleMediaQuery);
+});
+
+onUnmounted(() => {
+    if (mediaQuery) {
+        mediaQuery.removeEventListener('change', handleMediaQuery);
+    }
+});
 
 const prompt = `[
   {
