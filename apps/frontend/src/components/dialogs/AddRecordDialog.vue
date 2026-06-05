@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal header="新增成績紀錄" :style="{ width: '90vw', maxWidth: '400px' }">
+    <Dialog v-model:visible="visible" modal :header="dialogHeader" :style="{ width: '90vw', maxWidth: '400px' }">
         <div class="form-container">
             <div class="field-group">
                 <div class="field-header">
@@ -75,7 +75,7 @@
 
         <template #footer>
             <Button
-                v-if="selectedSongData"
+                v-if="selectedSongData && !UIStore.editingRecord"
                 label="重新輸入"
                 icon="pi pi-refresh"
                 outlined
@@ -84,13 +84,13 @@
                 class="btn-nowrap"
             />
             <Button label="取消" icon="pi pi-times" outlined severity="secondary" @click="close" />
-            <Button label="確認新增" icon="pi pi-check" @click="save" />
+            <Button :label="saveButtonLabel" icon="pi pi-check" @click="save" />
         </template>
     </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, useTemplateRef } from 'vue';
+import { ref, watch, nextTick, useTemplateRef, computed } from 'vue';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
@@ -99,11 +99,18 @@ import Button from 'primevue/button';
 import { debounce } from 'lodash';
 import { algoliasearch } from 'algoliasearch';
 import { Difficulty } from "../../utils/record";
+import { useUIStore } from "@/stores/uiStore";
 
 const searchClient = algoliasearch('UIKBGM1GZF', 'eb80677b06c782de84ff19151fe82ba0');
 
 const visible = defineModel('visible', { type: Boolean, default: false });
 const emit = defineEmits(['save']);
+
+const UIStore = useUIStore();
+
+// 使用 computed 計算 Dialog 標題與按鈕文字
+const dialogHeader = computed(() => UIStore.editingRecord ? '修改成績紀錄' : '新增成績紀錄');
+const saveButtonLabel = computed(() => UIStore.editingRecord ? '確認修改' : '確認新增');
 
 // 使用 Vue 3.5 新語法綁定 Template Ref
 const titleInput = useTemplateRef<any>('titleInput');
@@ -127,10 +134,27 @@ const selectedSongData = ref<any>(null);
 // 預留的分裂分數狀態
 // const splitScore = ref({ part1: null, part2: null });
 
-// Watch visible state to reset form
+// Watch visible state to reset form or prefill edit data
 watch(visible, (newVal) => {
     if (newVal) {
-        resetForm(true);
+        if (UIStore.editingRecord) {
+            // 編輯模式：從 editingRecord 帶入資料
+            const record = UIStore.editingRecord;
+            form.value = {
+                title: record.title,
+                difficulty: record.difficulty,
+                constant: record.constant,
+                score: record.score
+            };
+            searchQuery.value = record.title;
+            // 預填選取的歌曲資料，確保當 autoUpdate 是 true 時，會觸發唯讀鎖定
+            selectedSongData.value = record.autoUpdate 
+                ? { title: record.title, constants: { [record.difficulty]: record.constant } } 
+                : null;
+        } else {
+            // 新增模式：重置表單
+            resetForm(true);
+        }
     }
 });
 

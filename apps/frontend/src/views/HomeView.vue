@@ -94,6 +94,7 @@ const isMac = ref(navigator.userAgent.toUpperCase().indexOf('MAC') >= 0);
 // 當對話框關閉時，鎖定目前的滾動位置，防止 PrimeVue 焦點管理引發的滾動跳動
 watch(isAddDialogOpen, (newVal) => {
     if (!newVal) {
+        UIStore.editingRecord = null; // 清除編輯狀態
         const scrollY = window.scrollY;
         const restoreScroll = () => {
             if (window.scrollY !== scrollY) {

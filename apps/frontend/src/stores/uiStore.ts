@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { useToast } from "primevue";
 import { ref } from "vue";
+import { Record } from "@/utils/record";
 
 export const useUIStore = defineStore("UI", () => {
     // dialog state
@@ -9,6 +10,7 @@ export const useUIStore = defineStore("UI", () => {
     const isImportDialogOpen = ref(false);
     const isExportDialogOpen = ref(false);
     const isMergeDialogOpen = ref(false);
+    const editingRecord = ref<Record | null>(null);
 
     // 主題狀態 (Day / Night Theme)
     const isDarkTheme = ref(true); // 預設為暗色系電競風
@@ -54,6 +56,7 @@ export const useUIStore = defineStore("UI", () => {
         isImportDialogOpen,
         isExportDialogOpen,
         isMergeDialogOpen,
+        editingRecord,
         isDarkTheme,
         initTheme,
         toggleTheme
