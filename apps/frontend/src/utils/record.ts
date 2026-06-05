@@ -13,7 +13,7 @@ export type Record = {
     autoUpdate?: boolean
 };
 
-export const myRecords: Record[] = [
+export const testRecords: Record[] = [
     { id: 's000', title: '測試PST', difficulty: 'PST', constant: 12.0, score: 1000.4999, playPtt: 14.0000, lastUpdate: Date.now() },
     { id: 's000', title: '測試PRS', difficulty: 'PRS', constant: 12.0, score: 1000.4999, playPtt: 14.0000 },
     { id: 's000', title: '測試FTR', difficulty: 'FTR', constant: 12.0, score: 1000.4999, playPtt: 14.0000 },

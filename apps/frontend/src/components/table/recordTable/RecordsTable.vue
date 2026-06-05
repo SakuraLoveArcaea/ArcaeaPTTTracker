@@ -6,62 +6,71 @@
             size="small"
             sort-field="playPtt"
             :sort-order="-1"
-            edit-mode="cell"
+            :edit-mode="editable ? 'cell' : undefined"
             @cell-edit-init="onCellEditInit"
             @cell-edit-complete="onCellEditComplete"
             @cell-edit-cancel="onCellEditCancel"
         >
             <template #empty>
-                <div>
-                    目前沒有任何成績。<br/>點擊右上角「新增」手動加入，或「匯入」現有資料。
+                <div class="empty-state">
+                    目前沒有任何成績。<br/>
+                    <span v-if="editable">點擊右上角「新增」手動加入，或「匯入」現有資料。</span>
                 </div>
             </template>
 
-            <Column key="rank" class="column-rank" style="width: 40px">
+            <!-- 1. # 排名/刪除 欄位 -->
+            <Column v-if="visibleColumns.includes('rank')" key="rank" class="column-rank" style="width: 50px">
                 <template #header>
                     <span class="header">#</span>
                 </template>
                 <template #body="{ data, index }">
-                    <button class="body delete-btn" @click="requestDelete(data)">
+                    <button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績">
                         <span class="rank-text">{{ index < 30 ? index + 1 : '-' }}</span>
+                        <i class="pi pi-trash delete-icon"></i>
                     </button>
+                    <span v-else class="body plain-rank-text" :class="{ 'top-three': index < 3 }">
+                        {{ index < 30 ? index + 1 : '-' }}
+                    </span>
                 </template>
             </Column>
 
-<!--            <Column key="recent" class="column-recent" style="width: 90px">-->
-<!--                <template #header>-->
-<!--                    <span class="header">recent</span>-->
-<!--                </template>-->
-<!--                <div class="recent-color"></div>-->
-<!--            </Column>-->
-
-            <Column key="title" field="title" class="column-title">
+            <!-- 2. 曲名 欄位 -->
+            <Column v-if="visibleColumns.includes('title')" key="title" field="title" class="column-title">
                 <template #header>
                     <span class="header">曲名</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body" :style="getRecentColorLevel(data.lastUpdate, setting.baseHue, setting.maxLevels)">{{ data.title }}</span>
+                    <span class="body title-span" :style="getTitleStyle(data.lastUpdate)">
+                        {{ data.title }}
+                        <small v-if="data.autoUpdate" class="db-badge" title="資料庫自動更新">
+                            <i class="pi pi-link"></i>
+                        </small>
+                    </span>
                 </template>
                 <template #editor="{ data, field }">
                     <InputText class="editor" v-model="data[field]" :disabled="data.autoUpdate === true" autofocus fluid />
                 </template>
             </Column>
 
-            <Column key="lastUpdate" field="lastUpdate" class="column-lastUpdate" style="width: 90px">
+            <!-- 3. 上次更新 欄位 -->
+            <Column v-if="visibleColumns.includes('lastUpdate')" key="lastUpdate" field="lastUpdate" class="column-lastUpdate" style="width: 100px">
                 <template #header>
                     <span class="header">上次更新</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body"><small>{{ data.lastUpdate ? new Date(data.lastUpdate).toLocaleDateString() : '-' }}</small></span>
+                    <span class="body date-text">
+                        <small>{{ data.lastUpdate ? new Date(data.lastUpdate).toLocaleDateString() : '-' }}</small>
+                    </span>
                 </template>
             </Column>
 
-            <Column key="difficulty" field="difficulty" class="column-difficulty" style="width: 8rem">
+            <!-- 4. 難度 欄位 -->
+            <Column v-if="visibleColumns.includes('difficulty')" key="difficulty" field="difficulty" class="column-difficulty" style="width: 8rem">
                 <template #header>
                     <span class="header">難度</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body" :style="{ backgroundColor: diffColors[data.difficulty as Difficulty] }">
+                    <span class="body diff-badge" :style="{ backgroundColor: diffColors[data.difficulty as Difficulty] }">
                         {{ data.difficulty }}
                     </span>
                 </template>
@@ -70,48 +79,45 @@
                 </template>
             </Column>
 
-            <Column key="constant" field="constant" class="column-constant" style="width: 6rem">
+            <!-- 5. 定數 欄位 -->
+            <Column v-if="visibleColumns.includes('constant')" key="constant" field="constant" class="column-constant" style="width: 6rem">
                 <template #header>
                     <span class="header">定數</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body">{{ data.constant.toFixed(1) }}</span>
+                    <span class="body constant-text">{{ data.constant.toFixed(1) }}</span>
                 </template>
                 <template #editor="{ data, field }">
                     <InputNumber class="editor" v-model="data[field]" :minFractionDigits="1" :maxFractionDigits="1" :disabled="data.autoUpdate === true" autofocus fluid />
                 </template>
             </Column>
 
-            <Column key="score" field="score" class="column-score" style="width: 8rem">
+            <!-- 6. 分數 欄位 -->
+            <Column v-if="visibleColumns.includes('score')" key="score" field="score" class="column-score" style="width: 8rem">
                 <template #header>
                     <span class="header">分數</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body">{{ data.score.toFixed(4) }}</span>
+                    <span class="body score-text">{{ data.score.toFixed(4) }}</span>
                 </template>
                 <template #editor="{ data, field }">
                     <InputNumber class="editor" v-model="data[field]" :minFractionDigits="4" :maxFractionDigits="4" autofocus fluid />
-<!--                    <div class="editor">-->
-<!--                        <div class="inputs">-->
-<!--                            <InputNumber></InputNumber>-->
-<!--                            <InputNumber></InputNumber>-->
-<!--                        </div>-->
-
-<!--                    </div>-->
                 </template>
             </Column>
 
-            <Column key="playPtt" field="playPtt" sortable class="column-ptt" style="width: 6rem">
+            <!-- 7. playPtt 欄位 -->
+            <Column v-if="visibleColumns.includes('playPtt')" key="playPtt" field="playPtt" sortable class="column-ptt" style="width: 6rem">
                 <template #header>
                     <span class="header">playPtt</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body text-primary">{{ data.playPtt.toFixed(4) }}</span>
+                    <span class="body ptt-text">{{ data.playPtt.toFixed(4) }}</span>
                 </template>
             </Column>
         </DataTable>
 
-        <div v-if="isEditing" class="floating-action-bar">
+        <!-- 浮動儲存/取消動作列 -->
+        <div v-if="isEditing && editable" class="floating-action-bar">
             <EditingConfirmActions @save="onActionComplete" @cancel="onActionComplete" />
         </div>
     </div>
@@ -119,12 +125,11 @@
 
 <script setup lang="ts">
 import { type PropType, ref } from "vue";
-import {Difficulty, myRecords, type Record} from "../../../utils/record";
+import { Difficulty, type Record } from "@/utils/record";
 import DataTable from "primevue/datatable";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import Column from "primevue/column";
-import Button from "primevue/button";
 import Select from "primevue/select";
 import { useToast } from "primevue/usetoast";
 import EditingConfirmActions from "./EditingConfirmActions.vue";
@@ -142,10 +147,25 @@ const props = defineProps({
         type: Object as PropType<{ logBase: number, baseHue: number, maxLevels: number, unitMinutes?: number }>,
         default: () => ({ logBase: 2, baseHue: 142, maxLevels: 7 })
     },
+    editable: {
+        type: Boolean,
+        default: false
+    },
+    deletable: {
+        type: Boolean,
+        default: false
+    },
+    showFading: {
+        type: Boolean,
+        default: true
+    },
+    visibleColumns: {
+        type: Array as PropType<string[]>,
+        default: () => ['rank', 'title', 'lastUpdate', 'difficulty', 'constant', 'score', 'playPtt']
+    }
 });
 
 const emit = defineEmits<{
-    // 傳遞新資料以及成功/失敗的回呼函數
     (e: 'request-update', payload: { updatedData: Record, field: string, onSuccess: () => void, onError: () => void }): void;
     (e: 'request-delete', record: Record): void;
 }>();
@@ -153,7 +173,7 @@ const emit = defineEmits<{
 const toast = useToast();
 
 const difficulties = ref<Difficulty[]>(['PST', 'PRS', 'FTR', 'BYD', 'ETR']);
-const diffColors: globalThis.Record<Difficulty, string> = {
+const diffColors: Record<Difficulty, string> = {
     'PST': '#5aa1d9',
     'PRS': '#81b144',
     'FTR': '#a155ab',
@@ -161,34 +181,43 @@ const diffColors: globalThis.Record<Difficulty, string> = {
     'ETR': '#c4a1d1'
 };
 
-// ================= 行內編輯器狀態控制 =================
+// 行內編輯器狀態控制
 const isEditing = ref(false);
 const activeCellCount = ref(0);
 
+const onCellEditInit = () => { 
+    if (!props.editable) return;
+    activeCellCount.value++; 
+    isEditing.value = true; 
+};
 
-const onCellEditInit = () => { activeCellCount.value++; isEditing.value = true; };
 const closeEditBar = () => {
     activeCellCount.value = Math.max(0, activeCellCount.value - 1);
     setTimeout(() => { if (activeCellCount.value === 0) isEditing.value = false; }, 150);
 };
-const forceCloseBar = () => { activeCellCount.value = 0; isEditing.value = false; };
+
+const forceCloseBar = () => { 
+    activeCellCount.value = 0; 
+    isEditing.value = false; 
+};
+
 const onCellEditCancel = () => closeEditBar();
 const onActionComplete = () => {
     forceCloseBar();
 };
 
-
-// ================= 數據校驗與 Emit =================
+// 數據校驗與 Emit
 const onCellEditComplete = (event: any) => {
+    if (!props.editable) return;
     closeEditBar();
     const { data, newValue, field, revert } = event;
 
-    // --- 第一層：UI 與格式防呆校驗 ---
+    // 校驗格式
     if (field === 'title') {
         if (!newValue || String(newValue).trim() === '') {
             toast.add({ severity: 'error', summary: '格式錯誤', detail: '標題不能為空！', life: 3000 });
             if (revert) revert();
-            return; // 擋下，不通知父組件
+            return;
         }
     } else if (field === 'constant') {
         if (newValue == null || newValue <= 0 || newValue > 13) {
@@ -204,97 +233,48 @@ const onCellEditComplete = (event: any) => {
         }
     }
 
-    // 若值沒有改變，則不執行後續動作
     if (data[field] === newValue) return;
 
-    // 準備更新的數據包 (此處不直接修改原始 data，交給父組件決定)
     const updatedData = { ...data, [field]: newValue };
 
-    // --- 第二層：傳遞給父組件處理業務邏輯 ---
     emit('request-update', {
         updatedData,
         field,
-        onSuccess: () => {
-            // 父組件 API 呼叫成功，這裡不需要做什麼，父組件會更新 props.records
-        },
+        onSuccess: () => {},
         onError: () => {
-            // 父組件 API 呼叫失敗，觸發 UI 復原
             if (revert) revert();
         }
     });
 };
 
 const requestDelete = (record: Record) => {
+    if (!props.deletable) return;
     emit('request-delete', record);
 };
 
-
-// ================ getRecentColorLevel ================
-// const getRecentColorLevel = (
-//     lastUpdate: number,
-//     logBase: number,
-//     baseHue: number,
-//     maxLevels: number,
-//     unitMinutes: number = 30 // 新增參數：基數（分鐘），預設為 30 分鐘
-// ) => {
-//     if (!lastUpdate) return { borderLeft: '4px solid transparent' };
-//
-//     const now = Date.now();
-//     // 將計算單位動態化
-//     const unitMs = 1000 * 60 * unitMinutes;
-//     const diffUnits = Math.max(1, (now - lastUpdate) / unitMs);
-//
-//     // 1. 計算時間層級
-//     let level = Math.floor(Math.log(diffUnits) / Math.log(logBase));
-//     level = Math.max(0, Math.min(level, maxLevels - 1));
-//
-//     // 2. 視覺對數映射 (HSL)
-//     const minLightness = 45;
-//     const maxLightness = 90;
-//     const maxSaturation = 85;
-//     const minSaturation = 40;
-//
-//     const currentLightness = minLightness + ((maxLightness - minLightness) / (maxLevels - 1)) * level;
-//     const currentSaturation = maxSaturation - ((maxSaturation - minSaturation) / (maxLevels - 1)) * level;
-//
-//     return {
-//         borderLeft: `4px solid hsl(${baseHue}, ${currentSaturation}%, ${currentLightness}%)`
-//     };
-// };
-
-const getRecentColorLevel = (
-    lastUpdate: number,
-    baseHue: number = 142,  // 色相
-    maxLevels: number = 8   // 你設定了 8 個時間點
-) => {
-    if (!lastUpdate) return { borderLeft: '4px solid transparent' };
+// 計算時間褪色
+const getTitleStyle = (lastUpdate: number) => {
+    if (!props.showFading || !lastUpdate) {
+        return { borderLeft: '4px solid transparent' };
+    }
 
     const now = Date.now();
     const diffMinutes = (now - lastUpdate) / (1000 * 60);
-
-    /**
-     * 手動設定的時間層級（分鐘）：
-     * 15m, 30m, 1h(60m), 3h(180m), 1d(1440m), 3d(4320m), 1w(10080m), 2w(20160m)
-     */
     const timeThresholds = [15, 30, 60, 180, 1440, 4320, 10080, 20160];
 
-    // 找出目前差異分鐘數屬於哪一個 index
     let level = timeThresholds.findIndex(threshold => diffMinutes <= threshold);
-
-    // 如果超過最後一個時間點 (2週)，設為最後一級或透明
     if (level === -1) {
-        // 你可以選擇回傳最淡的顏色，或直接透明
-        // return { borderLeft: '4px solid transparent' };
         level = timeThresholds.length - 1;
     }
 
-    // 視覺映射 (HSL)
+    const baseHue = props.setting.baseHue;
+    const maxLevels = props.setting.maxLevels;
+
     const minLightness = 45;
     const maxLightness = 90;
     const maxSaturation = 85;
     const minSaturation = 40;
 
-    // 根據 level 計算對應的亮度與飽和度
     const currentLightness = minLightness + ((maxLightness - minLightness) / (maxLevels - 1)) * level;
     const currentSaturation = maxSaturation - ((maxSaturation - minSaturation) / (maxLevels - 1)) * level;
 
@@ -304,136 +284,171 @@ const getRecentColorLevel = (
 };
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
 .records-table-container {
-    padding-bottom: 80px; /* 預留給浮動按鈕的空間 */
+  position: relative;
+  width: 100%;
 }
 
-/* === header === */
-.column-rank .header,
-.column-title .header,
-.column-lastUpdate .header,
-.column-difficulty .header,
-.column-constant .header,
-.column-score .header,
-.column-ptt .header {
-    display: block;
-    width: 100%;
-    font-weight: bold;
-    text-align: center;
+.empty-state {
+  padding: 2.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
-/* === body === */
-.column-rank .body,
-.column-lastUpdate .body,
-.column-constant .body,
-.column-score .body,
-.column-ptt .body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 40px;
-    text-align: center;
+// 欄位標頭與本體通用排版
+.header {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.column-difficulty .body {
-    display: flex;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-    padding: 0 3rem 0 3rem;
-    border-radius: 0.375rem;
-    color: #ffffff;
-    font-weight: bold;
-    text-align: center;
+.body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  box-sizing: border-box;
 }
 
-/* === title（要靠左） === */
-
-.column-title .body {
-    display: inline-flex;
-    align-items: center;
-    height: 40px;
+// 曲名欄位靠左排版
+.column-title {
+  .body {
+    justify-content: flex-start;
     padding: 0 1rem;
-    width: 100%;
-    border-radius: 4px;
+    font-weight: 500;
+  }
 }
 
-/* === editor === */
-.column-title .editor,
-.column-difficulty .editor,
-.column-constant .editor{
-    display: inline-flex;
-    height: 40px;
-    width: 100%;
+.title-span {
+  transition: border-color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
 }
 
-
-
-.column-score .editor {
-    position: relative;
-}
-.column-score .editor .inputs {
-    position: absolute;
-    width: 400px;
-    display: flex;
-    left: -150px;
-    bottom: 0;
+.db-badge {
+  color: #3b82f6;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.8;
 }
 
-.column-score .editor .inputs InputNumber {
-
-}
-
-
-/* === rank欄位兼職刪除按鈕 === */
-.column-rank .delete-btn {
+// 排名欄位特殊效果
+.column-rank {
+  .delete-btn {
+    border: none;
+    background: transparent;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     width: 100%;
-    position: relative;
-}
-.column-rank .delete-btn:hover {
-    background-color: #fee2e2;
-    color: #ef4444;
-
-}
-
-.column-rank .delete-btn .rank-text {
-    opacity: 100%;
-}
-
-/* 查看
-.column-title .body:hover {
-    background-color: #909399;
-}
-*/
-
-/* === 編輯中動作 === */
-.floating-action-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 1rem;
-    background-color: #ffffff;
-    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+    height: 40px;
     display: flex;
-    gap: 1rem;
-    z-index: 1000;
-    animation: slideUp 0.3s ease-out;
-    animation-fill-mode: forwards;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--text-muted);
 
+    .delete-icon {
+      display: none;
+      color: #ef4444;
+      font-size: 0.9rem;
+    }
+
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.15);
+      border-radius: 6px;
+
+      .rank-text {
+        display: none;
+      }
+      .delete-icon {
+        display: block;
+      }
+    }
+  }
+
+  .plain-rank-text {
+    font-weight: 600;
+    color: var(--text-muted);
+    
+    &.top-three {
+      color: #f59e0b; // 前三名呈現金黃色加亮
+      font-weight: 700;
+    }
+  }
+}
+
+// 難度 Badge 樣式
+.diff-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  min-width: 3.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+// 文字特別樣式
+.constant-text, .score-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+}
+
+.ptt-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.date-text {
+  color: var(--text-muted);
+}
+
+// 編輯器尺寸一致化
+.editor {
+  height: 36px;
+  width: 100%;
+}
+
+// 浮動操作面板
+.floating-action-bar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 450px;
+  padding: 0.75rem;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  z-index: 1000;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
 }
-
-
-
-
-.text-primary { color: var(--p-primary-color, #3b82f6); }
 </style>

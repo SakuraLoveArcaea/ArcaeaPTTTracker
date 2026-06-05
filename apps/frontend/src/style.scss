@@ -1,0 +1,246 @@
+// apps/frontend/src/style.scss
+
+// 1. 導入 PrimeIcons 圖示庫
+@import "primeicons/primeicons.css";
+
+// 2. 設計系統核心變數 (CSS Custom Properties)
+
+// ==========================================
+// 預設：日間模式 (Light Theme / Day Mode)
+// ==========================================
+:root {
+  --bg-primary: #f8fafc;        // 淺灰藍背景
+  --bg-card: rgba(255, 255, 255, 0.85); // 半透明白
+  --border-color: rgba(15, 23, 42, 0.08); // 極淡邊框
+  --text-color: #0f172a;        // 深藍灰文字
+  --text-muted: #64748b;        // 靜態灰色
+  
+  --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  --glass-blur: blur(16px);
+  
+  // 輸入框樣式
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-text: #0f172a;
+
+  // 對話框專用變數
+  --dialog-bg: #ffffff;
+  --dialog-header-bg: #f8fafc;
+  --instruction-bg: rgba(59, 130, 246, 0.05);
+  --instruction-border: #3b82f6;
+  --options-bg: #f1f5f9;
+  --options-text: #334155;
+
+  // 圖表與主要按鈕色
+  --primary: #3b82f6;
+  --primary-hover: #1d4ed8;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --success-text: #059669;
+  --success-border: rgba(16, 185, 129, 0.2);
+
+  // PrimeVue variables mapping
+  --p-primary-color: #3b82f6;
+  --p-primary-color-hover: #2563eb;
+}
+
+// ==========================================
+// 夜間模式 (Dark Theme / Night Mode) - 當 HTML 帶有 .p-dark 類別
+// ==========================================
+:root.p-dark {
+  --bg-primary: #0f172a;        // 深藍灰背景
+  --bg-card: rgba(30, 41, 59, 0.5); // 半透明黑
+  --border-color: rgba(255, 255, 255, 0.08); // 淺白色邊框
+  --text-color: #f8fafc;        // 淺白文字
+  --text-muted: #94a3b8;        // 灰藍文字
+
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  
+  // 輸入框樣式
+  --input-bg: rgba(15, 23, 42, 0.6);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-text: #f8fafc;
+
+  // 對話框專用變數
+  --dialog-bg: #1e293b;
+  --dialog-header-bg: rgba(15, 23, 42, 0.4);
+  --instruction-bg: rgba(59, 130, 246, 0.08);
+  --instruction-border: #60a5fa;
+  --options-bg: rgba(15, 23, 42, 0.4);
+  --options-text: #94a3b8;
+
+  // 圖表與主要按鈕色
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-text: #10b981;
+  --success-border: rgba(16, 185, 129, 0.3);
+
+  // PrimeVue variables mapping
+  --p-primary-color: #3b82f6;
+  --p-primary-color-hover: #60a5fa;
+}
+
+// 3. 全域基礎樣式與過渡
+:root {
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  color: var(--text-color);
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+#app {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+// 4. 重用玻璃樣式卡片
+.glass-panel {
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+// 全域垂直排版 Grid
+.dashboard-content-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+// 5. PrimeVue 表格、輸入框與對話框自適應樣式覆寫
+.p-datatable {
+  background: transparent !important;
+  
+  .p-datatable-thead > tr > th {
+    background: var(--dialog-header-bg) !important;
+    color: var(--text-muted) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-weight: 700 !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .p-datatable-tbody > tr {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.04) !important;
+    }
+  }
+}
+
+// Dialog (對話框) 自適應樣式
+.p-dialog {
+  background: var(--dialog-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+
+  .p-dialog-header {
+    background: var(--dialog-header-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-color) !important;
+    padding: 1.25rem 1.5rem !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .p-dialog-content {
+    background: var(--dialog-bg) !important;
+    color: var(--text-color) !important;
+    padding: 1.5rem !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .p-dialog-footer {
+    background: var(--dialog-header-bg) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 1rem 1.5rem !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .p-dialog-header-actions {
+    .p-dialog-close-button {
+      color: var(--text-muted) !important;
+      background: transparent !important;
+      &:hover {
+        background: var(--options-bg) !important;
+        color: var(--text-color) !important;
+      }
+    }
+  }
+}
+
+// 覆寫下拉選單 (Select) 與輸入框的全域樣式
+.p-select {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--text-color) !important;
+  
+  .p-select-label {
+    color: var(--text-color) !important;
+  }
+  
+  .p-select-dropdown {
+    color: var(--text-muted) !important;
+  }
+}
+
+.p-select-overlay {
+  background: var(--dialog-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  
+  .p-select-option {
+    color: var(--text-color) !important;
+    background: transparent !important;
+    
+    &:hover {
+      background: var(--options-bg) !important;
+    }
+    
+    &.p-select-option-selected {
+      background: rgba(59, 130, 246, 0.15) !important;
+      color: #3b82f6 !important;
+      font-weight: 700;
+    }
+  }
+}
+
+.p-inputtext, .p-inputnumber-input {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--text-color) !important;
+  
+  &:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+}

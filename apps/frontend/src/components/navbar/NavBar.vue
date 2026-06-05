@@ -1,37 +1,61 @@
 <template>
-    <nav class="navbar">
-        <h2>Arcaea PTT Tracker</h2>
+    <nav class="navbar glass-panel">
+        <!-- 左側：標題與 LOGO -->
+        <div class="navbar-brand">
+            <i class="pi pi-compass brand-icon"></i>
+            <h2 class="brand-title">Arcaea PTT Tracker</h2>
+        </div>
 
-        <div class="stats-container flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold">
-            <div class="stat-box">
-                B30 平均：<span class="text-primary text-lg" >{{ b30Avg.toFixed(4) }}</span>
+        <!-- 中間：核心指標看板 (玻璃質感膠囊) -->
+        <div class="stats-container">
+            <div class="stat-box b30" title="您的 Best 30 (最佳 30 次成績) 平均潛力值">
+                <i class="pi pi-star-fill stat-icon"></i>
+                <span class="label">B30 平均：</span>
+                <span class="value">{{ b30Avg.toFixed(4) }}</span>
             </div>
-            <div class="stat-box">
-                最高R10 平均：<span class="text-primary text-lg">{{ r10Avg.toFixed(4) }}</span>
+            <div class="stat-box r10" title="您的最高單曲前 10 次成績平均值 (預估最高)">
+                <i class="pi pi-bolt stat-icon"></i>
+                <span class="label">最高 R10 平均：</span>
+                <span class="value">{{ r10Avg.toFixed(4) }}</span>
             </div>
-            <div class="stat-box">
-                預估最高 PTT：<span class="text-primary text-lg">{{ maxPtt.toFixed(4) }}</span>
+            <div class="stat-box max-ptt" title="當您 Recent 10 遊玩皆能發揮極限時，所能達到的理論最高潛力值">
+                <i class="pi pi-chart-line stat-icon"></i>
+                <span class="label">預估最高 PTT：</span>
+                <span class="value">{{ maxPtt.toFixed(4) }}</span>
             </div>
         </div>
 
-        <div class="right">
-            <span>more</span>
-            <div v-if="currentUser && !forceLogout" class="user-info">
-                <span>{{ currentUser.displayName }}</span>
+        <!-- 右側：使用者選單 -->
+        <div class="navbar-user">
+            <!-- 主題切換按鈕 -->
+            <Button
+                :icon="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'"
+                outlined
+                severity="secondary"
+                size="small"
+                @click="UIStore.toggleTheme"
+                class="theme-toggle-btn"
+                :title="isDarkTheme ? '切換至日間模式' : '切換至夜間模式'"
+            />
+            <div v-if="currentUser && !forceLogout" class="user-profile">
                 <img
                     class="avatar"
                     v-if="currentUser.photoURL"
                     :src="currentUser.photoURL"
                     alt="User Avatar"
                 />
-                <Button label="登出" severity="danger" @click="requestLogout"/>
+                <div v-else class="avatar-placeholder">
+                    <i class="pi pi-user"></i>
+                </div>
+                <span class="username">{{ currentUser.displayName }}</span>
+                <Button label="登出" severity="danger" size="small" outlined @click="requestLogout" class="logout-btn"/>
             </div>
             <div v-else class="user-login">
-                <Button label="登入" severity="success" @click="authStore.signIn(toast)" />
+                <Button label="Google 登入" icon="pi pi-google" severity="success" size="small" @click="authStore.signIn(toast)" class="login-btn" />
             </div>
         </div>
 
-        <!-- 登出確認 Dialog -->
+        <!-- 登出確認彈窗 -->
         <ConfirmActionDialog 
             v-model:visible="showLogoutDialog" 
             header="確認登出" 
@@ -42,41 +66,30 @@
             @accept="executeLogout" 
             @cancel="showLogoutDialog = false"
         />
-
-
-
     </nav>
 </template>
 
 <script setup lang="ts">
-// UIs
 import { Button } from "primevue";
-//
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "@/stores/authStore";
 import { useRecordsStore } from "@/stores/recordsStore";
 import { storeToRefs } from "pinia";
-import { ConfirmActionDialog } from "../dialogs";
+import ConfirmActionDialog from '@/components/dialogs/ConfirmActionDialog.vue';
 import { ref } from "vue";
-import {calculatePlayPtt} from "@/utils/arcaea";
-import type {Record} from "../../utils/record";
-import AddRecordDialog from "../table/recordActions/AddRecordDialog.vue";
+import { useUIStore } from "@/stores/uiStore";
 
-// composable
 const toast = useToast();
 const authStore = useAuthStore();
 const recordsStore = useRecordsStore();
+const UIStore = useUIStore();
 
-// refs
 const { currentUser } = storeToRefs(authStore);
 const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
-const { records, isLoading } = storeToRefs(recordsStore);
-const { isDeleteDialogOpen, isAddDialogOpen, recordToDelete } = storeToRefs(recordsStore)
-const { addRecord, updateRecord, deleteRecord, onExportRecordsToJson } = recordsStore
+const { isDarkTheme } = storeToRefs(UIStore);
 
 const showLogoutDialog = ref(false);
 
-// marco
 defineProps({
     'forceLogout': {
         type: Boolean,
@@ -90,126 +103,224 @@ const requestLogout = () => {
 
 const executeLogout = async () => {
     await authStore.signOut(toast);
-    // 登出後做的事情：清除雲端紀錄，切換回本機資料
     recordsStore.initLoad();
     showLogoutDialog.value = false;
 };
-
-
-
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .navbar {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    gap: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* 數據區塊容器 */
+// 品牌 LOGO 區
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  
+  .brand-icon {
+    font-size: 1.35rem;
+    color: #3b82f6;
+  }
+
+  .brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+// 中間指標看版
 .stats-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap; /* 允許數據方塊換行 */
-    gap: 8px;
-}
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
 
-.stats-container .stat-box {
-    background: green; /* 如果您有設定 text-primary，這裡也可以改用主題色 */
-    color: white;
-    padding: 8px 12px;
-    border-radius: 1rem;
-    white-space: nowrap; /* 防止文字在方塊內斷行 */
-}
-
-/* 右側選單區塊 */
-.right {
+  .stat-box {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: default;
+
+    .stat-icon {
+      font-size: 0.85rem;
+    }
+
+    .label {
+      color: #94a3b8;
+    }
+
+    .value {
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    // 依據不同數據渲染不同色彩發光效果
+    &.b30 {
+      .stat-icon { color: #f59e0b; }
+      .value { color: #f59e0b; }
+      &:hover {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+
+    &.r10 {
+      .stat-icon { color: #10b981; }
+      .value { color: #10b981; }
+      &:hover {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+
+    &.max-ptt {
+      .stat-icon { color: #3b82f6; }
+      .value { color: #3b82f6; }
+      &:hover {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+  }
 }
 
-.user-info {
+// 使用者頭像與狀態
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .theme-toggle-btn {
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0;
+  }
+
+  .user-profile {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    height: auto; /* 移除固定高度，讓它自然延展 */
-    gap: 1rem;
+    gap: 0.75rem;
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .avatar-placeholder {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .username {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .logout-btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+  }
+
+  .login-btn {
+    border-radius: 6px;
+  }
 }
 
-.avatar {
-    width: 40px; /* 電腦版稍微縮小頭像會讓版面更精緻，可依喜好調整 */
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-/* =========================================
-   響應式斷點 (Responsive Breakpoints)
-   ========================================= */
-
-/* 平板 (Tablet) - 螢幕寬度小於 1024px */
+// 響應式佈局
 @media (max-width: 1024px) {
-    .navbar {
-        /* 將數據區塊推到第二行，讓標題和登入按鈕保持在第一行 */
-        justify-content: space-between;
-    }
+  .navbar {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    padding: 1rem;
+  }
 
-    .stats-container {
-        order: 3; /* 利用 order 改變視覺排列順序，移至最後 */
-        width: 100%; /* 強制佔滿整行 */
-        margin-top: 0.5rem;
-    }
+  .navbar-brand {
+    justify-content: center;
+  }
 
-    h2 {
-        order: 1;
-    }
+  .stats-container {
+    order: 3;
+    width: 100%;
+  }
 
-    .right {
-        order: 2;
-    }
+  .navbar-user {
+    order: 2;
+    justify-content: center;
+  }
 }
 
-/* 手機 (Mobile) - 螢幕寬度小於 768px */
-@media (max-width: 768px) {
-    .navbar {
-        font-size: 10px;
-        flex-direction: column; /* 改為垂直堆疊 */
-        align-items: stretch;
-    }
+:root:not(.p-dark) {
+  .navbar {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.05);
+  }
 
-    h2 {
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
+  .navbar-brand .brand-title {
+    background: linear-gradient(135deg, #0f172a, #475569);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-    .right {
-        order: 2;
-        width: 100%;
-        justify-content: center; /* 讓登入/登出按鈕置中 */
-        margin-bottom: 0.5rem;
-    }
+  .stats-container .stat-box {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.05);
 
-    .stats-container {
-        order: 3;
-        width: 100%;
+    .label {
+      color: #64748b;
     }
+  }
 
-    .stats-container .stat-box {
-        text-align: center;
-    }
-
-    .user-info {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
+  .navbar-user .user-profile .username {
+    color: #334155;
+  }
 }
 </style>

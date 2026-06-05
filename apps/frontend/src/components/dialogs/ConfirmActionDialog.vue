@@ -1,9 +1,9 @@
 <template>
     <Dialog v-model:visible="visible" modal :header="header" :style="{ width: '90vw', maxWidth: '400px' }" :closable="false">
-        <div class="flex items-center gap-3">
-            <i class="pi pi-exclamation-triangle text-red-500 text-2xl" v-if="severity === 'danger'"></i>
-            <i class="pi pi-info-circle text-blue-500 text-2xl" v-else></i>
-            <span>{{ message }}</span>
+        <div class="confirm-content">
+            <i class="pi pi-exclamation-triangle severity-icon danger" v-if="severity === 'danger'"></i>
+            <i class="pi pi-info-circle severity-icon info" v-else></i>
+            <span class="confirm-message">{{ message }}</span>
         </div>
         <template #footer>
             <Button :label="cancelLabel" icon="pi pi-times" outlined severity="secondary" @click="onCancel" />
@@ -39,5 +39,29 @@ const onCancel = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.confirm-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.severity-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  
+  &.danger {
+    color: #ef4444;
+  }
+  &.info {
+    color: #3b82f6;
+  }
+}
+
+.confirm-message {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-color);
+}
 </style>

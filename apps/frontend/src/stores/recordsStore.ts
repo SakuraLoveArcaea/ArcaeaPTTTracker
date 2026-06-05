@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { Record } from '../utils/record';
-import { fetchRecords, addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from '@/utils/firestore';
+import { Record } from '@/utils/record';
+import { fetchRecords, addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from '@/utils/firestoreClient';
 import { useAuthStore } from './authStore';
 import {useUIStore} from "./uiStore";
-import {calculatePlayPtt} from "@/utils/arcaea";
+import {calculatePlayPtt} from "@/utils/arcaeaRule";
 
 const LOCAL_STORAGE_KEY = 'arcaea_local_records';
 
@@ -16,8 +16,6 @@ export const useRecordsStore = defineStore('records', () => {
     const isLoading = ref(false);
 
     const recordToDelete = ref<Record | null>(null);
-    const isDeleteDialogOpen = ref(false)
-    const isAddDialogOpen = ref(false)
 
     const b30Avg = computed(() => {
         if (records.value.length === 0) return 0;
@@ -66,6 +64,7 @@ export const useRecordsStore = defineStore('records', () => {
         }
     };
 
+    // 底層
     const addRecord = async (newRecord: Record) => {
         // 樂觀更新
         records.value.unshift(newRecord);
@@ -87,6 +86,7 @@ export const useRecordsStore = defineStore('records', () => {
         }
     };
 
+    // 底層
     const updateRecord = async (oldRecord: Record, newRecord: Record, callbacks?: { onSuccess?: () => void, onError?: () => void, contextMsg?: string }) => {
         const { onSuccess, onError, contextMsg = '更新成功' } = callbacks || {};
 
@@ -136,6 +136,7 @@ export const useRecordsStore = defineStore('records', () => {
         }
     };
 
+    // 底層
     const deleteRecord = async () => {
         if (!recordToDelete.value) return;
         const record = recordToDelete.value;
@@ -227,7 +228,7 @@ export const useRecordsStore = defineStore('records', () => {
 
     const onDelete = (record: Record) => {
         recordToDelete.value = record;
-        isDeleteDialogOpen.value = true;
+        UIStore.isDeleteDialogOpen = true;
     };
 
 
@@ -243,8 +244,6 @@ export const useRecordsStore = defineStore('records', () => {
         records,
         isLoading,
         recordToDelete,
-        isDeleteDialogOpen,
-        isAddDialogOpen,
         b30Avg,
         r10Avg,
         maxPtt,

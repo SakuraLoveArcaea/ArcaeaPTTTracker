@@ -40,6 +40,8 @@ app.get('/api/users', async (req, res) => {
         res.json(users);
     } catch (error) {
         // @ts-ignore
+        console.log(error.message);
+        // @ts-ignore
         res.status(500).json({ error: error.message });
     }
 });
@@ -61,4 +63,4 @@ app.get('/api/users/:userId/records', async (req, res) => {
     }
 });
 
-app.listen(3000, () => console.log('Admin Server running on http://localhost:3000'));
+app.listen(3000, '127.0.0.1', () => console.log('Admin Server running on http://127.0.0.1:3000'));

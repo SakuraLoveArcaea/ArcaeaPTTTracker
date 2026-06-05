@@ -1,91 +1,95 @@
 <template>
     <div class="home-layout">
-        <main>
+        <!-- 提示看板 -->
+        <div class="edit-hint-banner">
+            <i class="pi pi-info-circle hint-icon"></i>
+            <span v-if="!currentUser" class="hint-text">
+                您目前使用的是 <b>本機暫存模式</b>，清除瀏覽器快取會導致成績遺失。<b>登入即可永久儲存成績並跨平台同步！</b>
+            </span>
+            <span v-else class="hint-text">
+                點擊儲存格直接編輯，按 <b>Enter</b> 儲存，按 <b>Esc</b> 取消。點擊最左側的 <b>排名 (#)</b> 可刪除紀錄。使用 <b>Cmd + K</b> 可喚醒快速錄入。
+            </span>
+        </div>
 
-            <div class="edit-hint hidden-on-mobile">
-                <span v-if="!currentUser">您目前使用的是 <b>本機暫存模式</b>，清除瀏覽器資料會導致成績遺失。登入即可永久保存並跨裝置同步！</span>
-                <span v-else>點擊儲存格直接編輯。按 <b>Enter</b> 儲存，按 <b>Esc</b> 取消。點擊最左側的<b>「排名 (#)」</b>可刪除該筆紀錄。</span>
-            </div>
-
-
+        <!-- 頂部操作按鈕 (新增/匯入/匯出) -->
+        <div class="actions-wrapper">
             <RecordsActions
                 @request-add="onAddRecordForm"
                 @request-import="handleImportData"
                 @request-export="onExportRecordsToJson"
             />
+        </div>
 
+        <!-- 可複用的成績表格 (首頁設定為可編輯、可刪除) -->
+        <div class="table-wrapper">
             <RecordsTable
                 :records="records"
                 :isLoading="isLoading"
-                :setting="{ logBase: 2, baseHue: 0, maxLevels: 7}"
+                :setting="{ logBase: 2, baseHue: 142, maxLevels: 7}"
+                :editable="true"
+                :deletable="true"
+                :showFading="true"
                 @request-update="onUpdateFromTable"
                 @request-delete="onDelete"
             />
+        </div>
 
-        </main>
-
+        <!-- 刪除確認對話框 -->
         <ConfirmActionDialog
             v-model:visible="isDeleteDialogOpen"
             header="刪除確認"
             :message="`您確定要刪除「${recordToDelete?.title}」的成績嗎？刪除後無法復原。`"
             severity="danger"
-            acceptLabel="刪除"
+            acceptLabel="確認刪除"
             cancelLabel="取消"
             @accept="deleteRecord"
             @cancel="recordToDelete = null"
         />
 
+        <!-- 本地與雲端資料合併對話框 -->
         <MergeDataDialog
             v-model:visible="showMergeDialog"
             :recordCount="localRecordsCount"
             @merge="executeMerge"
             @discard="executeDiscard"
         />
-
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import { useToast } from "primevue/usetoast";
 
 import RecordsTable from "./recordTable/RecordsTable.vue";
 import RecordsActions from "./recordActions/RecordsActions.vue";
-import { ConfirmActionDialog, MergeDataDialog } from '../dialogs';
+import ConfirmActionDialog from '@/components/dialogs/ConfirmActionDialog.vue';
+import MergeDataDialog from '@/components/dialogs/MergeDataDialog.vue';
 
 import { useAuthStore } from "@/stores/authStore";
 import { useRecordsStore } from "@/stores/recordsStore";
-import { addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from "@/utils/firestore";
-import { calculatePlayPtt } from "@/utils/arcaea";
+import { addRecordDataByRecord, deleteRecordDataByRecord } from "@/utils/firestoreClient";
+import { calculatePlayPtt } from "@/utils/arcaeaRule";
 import { type Record, Difficulty } from "@/utils/record";
-import {useUIStore} from "@/stores/uiStore";
+import { useUIStore } from "@/stores/uiStore";
 
-// === 狀態與 Store 初始化 ===
 const authStore = useAuthStore();
 const recordsStore = useRecordsStore();
 const UIStore = useUIStore();
 
 const { currentUser } = storeToRefs(authStore);
 const { records, isLoading } = storeToRefs(recordsStore);
-const { isDeleteDialogOpen, recordToDelete } = storeToRefs(recordsStore)
-const { addRecord, updateRecord, deleteRecord, onExportRecordsToJson, onAddRecordForm, onUpdateFromTable, onDelete } = recordsStore
+const { recordToDelete } = storeToRefs(recordsStore)
+const { isDeleteDialogOpen } = storeToRefs(UIStore)
+const { deleteRecord, onExportRecordsToJson, onAddRecordForm, onUpdateFromTable, onDelete } = recordsStore
 
-
-// Props
 const props = defineProps({
     'testing': { type: Boolean, default: false },
     'empty': { type: Boolean, default: false }
 });
 
-
-
 const showMergeDialog = ref(false);
 const localRecordsCount = ref(0);
 
-
-
-// === 生命週期與監聽器 ===
 onMounted(() => {
     if (props.testing) {
         if (props.empty) records.value = [];
@@ -113,10 +117,6 @@ watch(
     { immediate: true }
 );
 
-// === 合併資料邏輯 (Merge Dialog) ===
-/*
-上傳 + 清除(本地)
- */
 const executeMerge = async () => {
     if (!currentUser.value) return;
     isLoading.value = true;
@@ -143,7 +143,6 @@ const executeDiscard = async () => {
     await recordsStore.loadCloudRecords();
 };
 
-// === 匯入與匯出資料邏輯 ===
 const handleImportData = async ({ data, overwrite, clearAll }: { data: any[], overwrite: boolean, clearAll: boolean }) => {
     isLoading.value = true;
 
@@ -200,35 +199,69 @@ const handleImportData = async ({ data, overwrite, clearAll }: { data: any[], ov
         if (currentUser.value) await recordsStore.loadCloudRecords();
     }
 };
-
-
 </script>
 
-<style scoped>
-
-.home-layout { padding-bottom: 2rem; }
-
-.bottom-actions {
-    position: fixed;
-    right: 0;
-    top: 0;
-    z-index: 50;
+<style scoped lang="scss">
+.home-layout {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-/* 提示訊息區塊 */
-.edit-hint {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background-color: var(--p-surface-100, #f8f9fa);
-    border-left: 4px solid var(--p-primary-color, #3b82f6);
-    border-radius: 4px;
-    font-size: 0.9rem;
-    color: var(--p-text-color, #495057);
+// 提示橫幅樣式 (Glassmorphism + 左側提醒框)
+.edit-hint-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+  box-sizing: border-box;
+
+  .hint-icon {
+    color: #3b82f6;
+    font-size: 1.1rem;
+    margin-top: 0.15rem;
+  }
+
+  .hint-text {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    
+    b {
+      color: #f8fafc;
+    }
+  }
+}
+
+.actions-wrapper {
+  width: 100%;
+}
+
+.table-wrapper {
+  width: 100%;
 }
 
 @media (max-width: 768px) {
-    .hidden-on-mobile { display: none; }
+  .edit-hint-banner {
+    display: none; // 手機板自動隱藏複雜提示
+  }
+}
+
+:root:not(.p-dark) {
+  .edit-hint-banner {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: #3b82f6;
+
+    .hint-text {
+      color: #475569;
+      b {
+        color: #0f172a;
+      }
+    }
+  }
 }
 </style>

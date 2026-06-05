@@ -3,33 +3,15 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, onUnmounted} from "vue";
-import {onAuthStateChanged} from "firebase/auth";
-import {auth} from "./firebase";
+import { onMounted } from "vue";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 import { User } from "firebase/auth";
-import {useAuthStore} from "./stores/authStore";
-import {storeToRefs} from "pinia";
-import {useRecordsStore} from "./stores/recordsStore";
+import { useAuthStore } from "./stores/authStore";
 import AdminView from "@/views/AdminView.vue";
 
-
-// composable
-const recordsStore = useRecordsStore();
-
-const { records, isLoading } = storeToRefs(recordsStore);
-const { isDeleteDialogOpen, isAddDialogOpen, recordToDelete } = storeToRefs(recordsStore)
-const { addRecord, updateRecord, deleteRecord, onAddRecordForm } = recordsStore
-
-
-
-
-
-
-// composable
 const store = useAuthStore();
 
-
-// hook
 onMounted(() => {
     onAuthStateChanged(auth, async (user: User | null) => {
         if (user) {
@@ -37,10 +19,8 @@ onMounted(() => {
         } else {
             store.setCurrentUser(null);
         }
-    })
-})
-
-
+    });
+});
 </script>
 
 <style>

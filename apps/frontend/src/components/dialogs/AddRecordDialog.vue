@@ -98,7 +98,7 @@ import InputNumber from 'primevue/inputnumber';
 import Button from 'primevue/button';
 import { debounce } from 'lodash';
 import { algoliasearch } from 'algoliasearch';
-import { Difficulty } from "../../../utils/record";
+import { Difficulty } from "../../utils/record";
 
 const searchClient = algoliasearch('UIKBGM1GZF', 'eb80677b06c782de84ff19151fe82ba0');
 
@@ -145,7 +145,7 @@ const performSearch = async () => {
         const { results } = await searchClient.search({
             requests: [
                 {
-                    indexName: 'arcaea_constants',
+                    indexName: 'arcaea_constants_ver_6_14',
                     query: searchQuery.value,
                     hitsPerPage: 8,
                 },
@@ -296,7 +296,7 @@ const save = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* 佈局與間距 */
 .form-container {
     display: flex;
@@ -340,16 +340,16 @@ const save = () => {
 /* 文字樣式 */
 .label-text {
     font-weight: bold;
-    color: #374151; /* gray-700 */
+    color: var(--text-color);
 }
 
 .help-text {
-    color: #6b7280; /* gray-500 */
+    color: var(--text-muted);
     font-size: 0.875rem;
 }
 
 .auto-update-badge {
-    color: #2563eb; /* blue-600 */
+    color: #3b82f6;
     font-weight: bold;
     font-size: 0.75rem;
     display: flex;
@@ -363,17 +363,17 @@ const save = () => {
 
 /* 狀態樣式 */
 .input-readonly {
-    background-color: rgba(239, 246, 255, 0.5) !important; /* blue-50 帶透明度 */
-    border-color: #93c5fd !important; /* blue-300 */
+    background-color: rgba(59, 130, 246, 0.08) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
 }
 
 /* 下拉選單與搜尋建議 */
 .suggestions-dropdown {
     position: absolute;
     width: 100%;
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    background-color: var(--dialog-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
     border-radius: 0.375rem;
     margin-top: 0.25rem;
     top: 100%;
@@ -385,19 +385,20 @@ const save = () => {
 .suggestion-item {
     padding: 0.5rem;
     cursor: pointer;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: background-color 0.2s;
-}
+    background: transparent;
 
-.suggestion-item:last-child {
-    border-bottom: none;
-}
+    &:last-child {
+        border-bottom: none;
+    }
 
-.suggestion-item:hover {
-    background-color: #eff6ff; /* blue-50 */
+    &:hover {
+        background-color: var(--options-bg);
+    }
 }
 
 .suggestion-text-wrapper {
@@ -410,11 +411,12 @@ const save = () => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--text-color);
 }
 
 .suggestion-aliases {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -14,22 +14,18 @@
             icon="pi pi-upload"
             severity="secondary"
             outlined
-            @click="showImportDialog = true"
+            @click="isImportDialogOpen = true"
             title="匯入 JSON"
         />
         <Button
             label="新增"
             icon="pi pi-plus"
             severity="primary"
-            @click="showAddDialog = true"
+            @click="isAddDialogOpen = true"
         />
 
-        <AddRecordDialog
-            v-model:visible="showAddDialog"
-            @save="handleSave"
-        />
         <ImportRecordDialog
-            v-model:visible="showImportDialog"
+            v-model:visible="isImportDialogOpen"
             @import="handleImport"
         />
     </div>
@@ -38,8 +34,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import Button from 'primevue/button';
-// 請確認這裡的路徑是否與你的專案結構相符
-import { AddRecordDialog, ImportRecordDialog } from '../../dialogs';
+import ConfirmActionDialog from '@/components/dialogs/ConfirmActionDialog.vue';
+import MergeDataDialog from '@/components/dialogs/MergeDataDialog.vue';
+import ImportRecordDialog from '@/components/dialogs/ImportRecordDialog.vue';
+import {useUIStore} from "@/stores/uiStore";
+import {storeToRefs} from "pinia";
+const UIStore = useUIStore();
+const { isAddDialogOpen, isImportDialogOpen } = storeToRefs(UIStore)
 
 // 定義要傳遞給父層 (TableView) 的事件
 const emit = defineEmits<{
@@ -49,22 +50,16 @@ const emit = defineEmits<{
 }>();
 
 // 管理 Dialog 顯示狀態
-const showAddDialog = ref(false);
-const showImportDialog = ref(false);
+
 
 const handleExport = () => {
     emit('request-export');
-};
-// 接收來自 AddRecordDialog 的資料，並往上層傳遞
-const handleSave = (form: any) => {
-    emit('request-add', form);
-    showAddDialog.value = false; // 送出後關閉彈窗
 };
 
 // 接收來自 ImportRecordDialog 的資料，並往上層傳遞
 const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: boolean }) => {
     emit('request-import', payload);
-    showImportDialog.value = false; // 送出後關閉彈窗
+    isImportDialogOpen.value = false; // 送出後關閉彈窗
 };
 
 

@@ -8,10 +8,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "frontend": "pnpm --filter frontend dev",
-    "server": "pnpm --filter server server-start",
-    "frontend-dev-host": "pnpm --filter frontend dev-host"
-
+    "dev:frontend": "pnpm --filter frontend run dev",
+    "dev:server": "pnpm --filter server run server-start",
+    "dev-host:frontend": "pnpm --filter frontend run dev-host",
+    "build:frontend": "pnpm --filter frontend run build",
+    "deploy:frontend": "pnpm --filter frontend run deploy"
   },
   "keywords": [],
   "author": "",

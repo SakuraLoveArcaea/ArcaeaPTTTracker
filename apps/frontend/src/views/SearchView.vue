@@ -76,7 +76,7 @@ const performSearch = async () => {
         const { results } = await searchClient.search({
             requests: [
                 {
-                    indexName: 'arcaea_constants',
+                    indexName: 'arcaea_constants_ver_6_14',
                     query: query,
                     hitsPerPage: 20, // 限制最多回傳 20 筆，避免畫面過長及浪費流量
                 },
@@ -94,132 +94,138 @@ const performSearch = async () => {
 };
 </script>
 
-<style scoped>
-/* 容器整體配置 */
+<style scoped lang="scss">
 .search-container {
-    max-width: 650px;
-    margin: 30px auto;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
+  max-width: 650px;
+  margin: 30px auto;
+  color: var(--text-color);
 }
 
 .title {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 24px;
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 24px;
 }
 
 /* 搜尋框與按鈕 */
 .search-box {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .search-box input {
-    flex: 1;
-    padding: 12px 16px;
-    font-size: 16px;
-    border: 1px solid #dcdfe6;
-    border-radius: 8px;
-    outline: none;
-    transition: border-color 0.2s;
-}
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-color);
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease;
 
-.search-box input:focus {
-    border-color: #409eff;
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
 }
 
 .search-box button {
-    padding: 0 24px;
-    font-size: 16px;
-    font-weight: bold;
-    background-color: #409eff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+  padding: 0 24px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 
-.search-box button:disabled {
-    background-color: #a0cfff;
+  &:disabled {
+    background-color: var(--text-muted);
+    opacity: 0.5;
     cursor: not-allowed;
-}
+  }
 
-.search-box button:hover:not(:disabled) {
-    background-color: #66b1ff;
+  &:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+  }
 }
 
 /* 表格樣式 */
 .results-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    overflow: hidden;
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .results-table th, .results-table td {
-    padding: 14px 20px;
-    text-align: left;
-    border-bottom: 1px solid #ebeef5;
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
 }
 
 .results-table th {
-    background-color: #f8f9fa;
-    color: #606266;
-    font-weight: 600;
+  background-color: var(--dialog-header-bg);
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .results-table tbody tr:hover {
-    background-color: #f5f7fa;
+  background-color: rgba(59, 130, 246, 0.04);
 }
 
 /* 曲名與別名 */
 .song-title {
-    font-weight: 600;
-    font-size: 16px;
-    color: #303133;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-color);
 }
 
 .alias-tags {
-    margin-top: 6px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .alias-tag {
-    font-size: 12px;
-    background-color: #f0f2f5;
-    color: #909399;
-    padding: 2px 8px;
-    border-radius: 12px;
+  font-size: 12px;
+  background-color: var(--options-bg);
+  color: var(--options-text);
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 /* 難度與定數區塊 */
 .constant-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 6px;
-}
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
 
-.constant-item:last-child {
+  &:last-child {
     margin-bottom: 0;
+  }
 }
 
 .diff-badge {
-    display: inline-block;
-    width: 40px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 0;
-    border-radius: 4px;
-    color: white;
+  display: inline-block;
+  width: 40px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 0;
+  border-radius: 4px;
+  color: white;
 }
 
 /* Arcaea 難度專屬顏色 */
@@ -230,19 +236,20 @@ const performSearch = async () => {
 .ETR { background-color: #b5a1c9; }
 
 .constant-val {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    font-weight: 600;
-    color: #606266;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 /* 無結果提示 */
 .no-result {
-    text-align: center;
-    padding: 40px;
-    color: #909399;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
 }
 </style>
