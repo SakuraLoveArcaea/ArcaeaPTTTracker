@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { Record } from '@/utils/record';
+import { type Record } from '@/utils/record';
 import { fetchRecords, addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from '@/utils/firestoreClient';
+import { downloadFile } from '@/utils/file';
 import { useAuthStore } from './authStore';
 import {useUIStore} from "./uiStore";
 import {calculatePlayPtt} from "@/utils/arcaeaRule";
@@ -161,16 +162,8 @@ export const useRecordsStore = defineStore('records', () => {
 
     const onExportRecordsToJson = () => {
         const dataStr = JSON.stringify(records.value, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
         const dateStr = new Date().toISOString().split('T')[0];
-        link.download = `arcaea_records_${dateStr}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        downloadFile(dataStr, `arcaea_records_${dateStr}.json`);
     };
 
     const onAddRecordForm = async (form: any) => {

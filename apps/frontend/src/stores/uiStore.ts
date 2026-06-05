@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { useToast } from "primevue";
+import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 import { Record } from "@/utils/record";
 
@@ -20,9 +20,26 @@ export const useUIStore = defineStore("UI", () => {
     // 主題狀態 (Day / Night Theme)
     const isDarkTheme = ref(true); // 預設為暗色系電競風
 
-    const toast = useToast();
+    // 安全延遲獲取 Toast 實例，防止 Store 在 Vue context 未就緒前加載時崩潰
+    let toastInstance: any = null;
+    const getToast = () => {
+        if (!toastInstance) {
+            try {
+                toastInstance = useToast();
+            } catch (error) {
+                // 忽略在靜態加載或早期生命週期階段的 inject 錯誤
+            }
+        }
+        return toastInstance;
+    };
+
     const showToast = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string, life = 3000) => {
-        toast.add({ severity, summary, detail, life });
+        const toast = getToast();
+        if (toast) {
+            toast.add({ severity, summary, detail, life });
+        } else {
+            console.warn(`[Toast Guard] UI Context unavailable: [${severity.toUpperCase()}] ${summary} - ${detail}`);
+        }
     };
 
     // 初始化顏色主題
