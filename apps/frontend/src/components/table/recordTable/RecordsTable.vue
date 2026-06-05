@@ -310,15 +310,24 @@ const getTitleStyle = (lastUpdate: number) => {
 
     const now = Date.now();
     const diffMinutes = (now - lastUpdate) / (1000 * 60);
-    const timeThresholds = [15, 30, 60, 180, 1440, 4320, 10080, 20160];
 
-    let level = timeThresholds.findIndex(threshold => diffMinutes <= threshold);
-    if (level === -1) {
-        level = timeThresholds.length - 1;
+    const logBase = props.setting.logBase || 2;
+    const maxLevels = props.setting.maxLevels || 7;
+    const unitMinutes = props.setting.unitMinutes || 15; // 預設 15 分鐘
+
+    let level = 0;
+    for (let i = 0; i < maxLevels - 1; i++) {
+        const threshold = unitMinutes * Math.pow(logBase, i);
+        if (diffMinutes <= threshold) {
+            level = i;
+            break;
+        }
+        if (i === maxLevels - 2) {
+            level = maxLevels - 1;
+        }
     }
 
-    const baseHue = props.setting.baseHue;
-    const maxLevels = props.setting.maxLevels;
+    const baseHue = props.setting.baseHue || 142;
 
     const minLightness = 45;
     const maxLightness = 90;
