@@ -14,13 +14,30 @@
             <div
                 v-for="(record, index) in records"
                 :key="record.id"
+                :id="'record-card-' + record.id"
                 class="record-card glass-panel"
-                :class="{ 'expanded': expandedRecordId === record.id }"
+                :class="{ 
+                    'expanded': expandedRecordId === record.id,
+                    'highlight-flash': UIStore.highlightedRecordId === record.id
+                }"
             >
                 <!-- 卡片頭部 (收合時可點擊展開) -->
                 <div class="card-header" @click="toggleExpand(record.id)">
                     <div class="header-left">
-                        <div class="rank-badge" :class="{ 'top-three': index < 3 }">
+                        <div
+                            v-if="deletable"
+                            class="rank-badge clickable-rank"
+                            :class="{ 'top-three': index < 3 }"
+                            @click.stop="onDeleteClick(record)"
+                            title="點擊刪除此成績"
+                        >
+                            {{ index < 30 ? index + 1 : '-' }}
+                        </div>
+                        <div
+                            v-else
+                            class="rank-badge"
+                            :class="{ 'top-three': index < 3 }"
+                        >
                             {{ index < 30 ? index + 1 : '-' }}
                         </div>
                         <div class="title-section">
@@ -34,7 +51,10 @@
                         </div>
                     </div>
                     <div class="header-right">
-                        <span class="play-ptt">{{ record.playPtt.toFixed(4) }}</span>
+                        <div class="ptt-score-group">
+                            <span class="play-ptt">{{ record.playPtt.toFixed(4) }}</span>
+                            <span class="score-text">{{ formatScore(record.score) }}</span>
+                        </div>
                         <i class="pi chevron-icon" :class="expandedRecordId === record.id ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
                     </div>
                 </div>
@@ -50,7 +70,7 @@
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">遊玩分數 (Score)</span>
-                                <span class="detail-value font-monospace">{{ record.score.toLocaleString() }}</span>
+                                <span class="detail-value font-monospace">{{ formatScore(record.score) }}</span>
                             </div>
                             <div class="detail-item full-width">
                                 <span class="detail-label">上次更新時間</span>
@@ -60,10 +80,9 @@
                             </div>
                         </div>
 
-                        <!-- 編輯 / 刪除動作列 -->
-                        <div v-if="editable || deletable" class="card-actions">
+                        <!-- 編輯動作列 -->
+                        <div v-if="editable" class="card-actions">
                             <Button
-                                v-if="editable"
                                 label="編輯成績"
                                 icon="pi pi-pencil"
                                 outlined
@@ -71,16 +90,6 @@
                                 size="small"
                                 class="action-btn"
                                 @click="onEditClick(record)"
-                            />
-                            <Button
-                                v-if="deletable"
-                                label="刪除紀錄"
-                                icon="pi pi-trash"
-                                outlined
-                                severity="danger"
-                                size="small"
-                                class="action-btn"
-                                @click="onDeleteClick(record)"
                             />
                         </div>
                     </div>
@@ -91,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, PropType, watch } from 'vue';
 import { Record, Difficulty } from '@/utils/record';
 import Button from 'primevue/button';
 import { useUIStore } from '@/stores/uiStore';
@@ -138,6 +147,18 @@ const toggleExpand = (id: string) => {
     }
 };
 
+// 監聽來自 Pinia 的展開命令（圖表跳轉定位時觸發）
+watch(() => UIStore.expandedRecordId, (newVal) => {
+    if (newVal) {
+        expandedRecordId.value = newVal;
+    }
+});
+
+const formatScore = (score: number | null) => {
+    if (score == null) return '-';
+    return score.toFixed(4);
+};
+
 const onEditClick = (record: Record) => {
     UIStore.editingRecord = record;
     UIStore.isAddDialogOpen = true;
@@ -151,6 +172,7 @@ const onDeleteClick = (record: Record) => {
 <style scoped lang="scss">
 .records-mobile-list-container {
     width: 100%;
+    padding-bottom: 5.5rem; /* 預留空間，確保最後一筆紀錄能被推高至 FAB 上方，不被遮擋 */
 }
 
 .loading-state, .empty-state {
@@ -182,11 +204,26 @@ const onDeleteClick = (record: Record) => {
     border-radius: 12px;
     padding: 0;
     overflow: hidden;
-    transition: border-color 0.25s, background-color 0.25s;
+    transition: border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
 
     &.expanded {
         background: rgba(30, 41, 59, 0.45);
         border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    &.highlight-flash {
+        animation: flash-border 2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+}
+
+@keyframes flash-border {
+    0% {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 16px rgba(59, 130, 246, 0.7) !important;
+        background-color: rgba(59, 130, 246, 0.15) !important;
+    }
+    100% {
+        // 動畫結束自動還原
     }
 }
 
@@ -226,6 +263,17 @@ const onDeleteClick = (record: Record) => {
         color: #f59e0b;
         border-color: rgba(245, 158, 11, 0.3);
         background: rgba(245, 158, 11, 0.08);
+    }
+
+    &.clickable-rank {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover, &:active {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border-color: rgba(239, 68, 68, 0.4) !important;
+            color: #ef4444 !important;
+        }
     }
 }
 
@@ -269,11 +317,27 @@ const onDeleteClick = (record: Record) => {
     gap: 0.75rem;
 }
 
+.ptt-score-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+}
+
 .play-ptt {
     font-family: 'Courier New', Courier, monospace;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #3b82f6;
+    line-height: 1.1;
+}
+
+.score-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    line-height: 1.1;
 }
 
 .chevron-icon {

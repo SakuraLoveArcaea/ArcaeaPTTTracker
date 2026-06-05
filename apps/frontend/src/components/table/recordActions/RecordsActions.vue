@@ -76,11 +76,10 @@ const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: bool
 
 
 
-/* 行動裝置響應式設定 */
+/* 行動裝置響應式設定 - 完全隱藏電腦版匯出/匯入/新增按鈕 */
 @media (max-width: 768px) {
     .actions-container {
-        width: 100%;
-        justify-content: space-between; /* 手機版按鈕等寬平分 */
+        display: none !important;
     }
 }
 </style>

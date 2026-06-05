@@ -1,23 +1,92 @@
 <template>
-    <div class="chart-container">
-        <Chart v-if="chartData.length > 0" :options="chartOptions"></Chart>
+    <div class="chart-wrapper-box">
+        <!-- 自定義精美標題列 (點擊可開啟詳細統計 Dialog) -->
+        <div v-if="chartData.length > 0" class="chart-header-row" @click="showStatsDialog = true" title="點擊查看詳細統計數據">
+            <h4 class="chart-title">
+                你的 B30 趨勢
+                <i class="pi pi-info-circle info-icon"></i>
+            </h4>
+            <span class="chart-subtitle">點擊此處查看詳細統計數據（平均值、中位數、標準差）</span>
+        </div>
 
-        <div v-else-if="recordsStore.isLoading" class="loading-overlay">
-            <span>📊 資料載入中，請稍候...</span>
+        <div class="chart-container">
+            <Chart v-slot="{ chart }" v-if="chartData.length > 0" :options="chartOptions"></Chart>
+
+            <div v-else-if="recordsStore.isLoading" class="loading-overlay">
+                <span>📊 資料載入中，請稍候...</span>
+            </div>
+            <div v-else class="loading-overlay">
+                <span>📭 暫無 B30 成績數據</span>
+            </div>
         </div>
-        <div v-else class="loading-overlay">
-            <span>📭 暫無 B30 成績數據</span>
-        </div>
+
+        <!-- B30 詳細統計對話框 -->
+        <Dialog
+            v-model:visible="showStatsDialog"
+            header="B30 詳細統計數據"
+            modal
+            :draggable="false"
+            :dismissableMask="true"
+            class="stats-dialog"
+            style="width: 90%; max-width: 400px;"
+        >
+            <div class="stats-dialog-content">
+                <div class="stat-detail-card">
+                    <div class="stat-icon-wrapper mean-bg">
+                        <i class="pi pi-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">B30 平均值</span>
+                        <span class="stat-value text-gold">{{ stats.mean.toFixed(4) }}</span>
+                    </div>
+                </div>
+
+                <div class="stat-detail-card">
+                    <div class="stat-icon-wrapper median-bg">
+                        <i class="pi pi-sliders-h"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">B30 中位數</span>
+                        <span class="stat-value text-emerald">{{ stats.median.toFixed(4) }}</span>
+                    </div>
+                </div>
+
+                <div class="stat-detail-card">
+                    <div class="stat-icon-wrapper std-bg">
+                        <i class="pi pi-percentage"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">標準差 (Std Dev)</span>
+                        <span class="stat-value text-blue">{{ stats.stdDev.toFixed(4) }}</span>
+                    </div>
+                </div>
+
+                <div class="stat-detail-card">
+                    <div class="stat-icon-wrapper range-bg">
+                        <i class="pi pi-arrows-h"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">單曲 PTT 區間</span>
+                        <span class="stat-value">{{ stats.min.toFixed(2) }} ~ {{ stats.max.toFixed(2) }}</span>
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="關閉" outlined severity="secondary" @click="showStatsDialog = false" class="close-btn" />
+            </template>
+        </Dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { Chart } from 'highcharts-vue';
 import { useRecordsStore } from "@/stores/recordsStore";
 import { useUIStore } from "@/stores/uiStore";
 import { storeToRefs } from "pinia";
 import { type Record } from '@/utils/record';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
 
 const props = defineProps({
     records: {
@@ -32,20 +101,88 @@ const { records } = storeToRefs(recordsStore);
 const { isDarkTheme } = storeToRefs(UIStore);
 
 // 動態響應式高度與手機檢視管理
-const chartHeight = ref(window.innerWidth < 1025 ? 380 : 480);
+const chartHeight = ref(window.innerWidth < 768 ? 260 : (window.innerWidth < 1025 ? 360 : 480));
 const isMobileView = ref(window.innerWidth < 768);
 
+// 輔助線與統計狀態
+const showMeanLine = ref(true);
+const showMedianLine = ref(false);
+const showStatsDialog = ref(false);
+
 const handleResize = () => {
-    chartHeight.value = window.innerWidth < 1025 ? 380 : 480;
+    chartHeight.value = window.innerWidth < 768 ? 260 : (window.innerWidth < 1025 ? 360 : 480);
     isMobileView.value = window.innerWidth < 768;
+};
+
+const stats = computed(() => {
+    if (chartData.value.length === 0) {
+        return { mean: 0, median: 0, stdDev: 0, min: 0, max: 0 };
+    }
+    
+    const values = chartData.value.map(item => item.y);
+    const count = values.length;
+    
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    const mean = sum / count;
+    
+    // values 已在 chartData 內按 playPtt 降序排序，取 30 項的中位數
+    const median = count >= 2 ? (values[Math.floor(count / 2) - 1] + values[Math.floor(count / 2)]) / 2 : values[0];
+    
+    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / count;
+    const stdDev = Math.sqrt(variance);
+    
+    return { mean, median, stdDev, min, max };
+});
+
+const handleJumpToRecord = (recordId: string) => {
+    // 1. 切換分頁到表格
+    UIStore.activeTab = 'table';
+    
+    // 2. 設定展開與選中高亮狀態
+    UIStore.expandedRecordId = recordId;
+    UIStore.highlightedRecordId = recordId;
+    
+    // 3. 等待 DOM 渲染完畢後，執行平滑滾動
+    nextTick(() => {
+        const scrollAndFocus = () => {
+            const cardEl = document.getElementById(`record-card-${recordId}`);
+            if (cardEl) {
+                cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return true;
+            }
+            return false;
+        };
+        
+        // 延遲重試以防 Tabs 切換動畫尚未完成導致 DOM 尚未完全渲染
+        if (!scrollAndFocus()) {
+            setTimeout(scrollAndFocus, 100);
+            setTimeout(scrollAndFocus, 300);
+        }
+    });
+    
+    // 4. 2秒後移除高亮效果，觸發動畫漸變復原
+    setTimeout(() => {
+        if (UIStore.highlightedRecordId === recordId) {
+            UIStore.highlightedRecordId = null;
+        }
+    }, 2000);
 };
 
 onMounted(() => {
     window.addEventListener('resize', handleResize);
+    // 註冊全域 JS 函數提供給 Highcharts HTML Tooltip 調用
+    // @ts-ignore
+    window.jumpToRecord = (recordId: string) => {
+        handleJumpToRecord(recordId);
+    };
 });
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
+    // @ts-ignore
+    delete window.jumpToRecord;
 });
 
 // 優先使用外部傳入的 records (管理員端)，否則使用 store (玩家首頁)
@@ -73,7 +210,8 @@ const chartData = computed(() => {
             title: record.title || '未知',
             constant: record.constant || 0,
             score: scoreVal,
-            difficulty: record.difficulty || 'FTR'
+            difficulty: record.difficulty || 'FTR',
+            id: record.id
         };
     });
 });
@@ -92,27 +230,76 @@ const chartOptions = computed(() => {
     const textColor = isDarkTheme.value ? '#cbd5e1' : '#1e293b';
     const gridLineColor = isDarkTheme.value ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.05)';
 
+    // 動態建置 Y 軸輔助線 (平均值與中位數)
+    const plotLines: any[] = [];
+    if (showMeanLine.value && chartData.value.length > 0) {
+        plotLines.push({
+            value: stats.value.mean,
+            color: '#f59e0b', // 黃金色輔助線
+            width: 2,
+            dashStyle: 'Dash',
+            zIndex: 4,
+            label: {
+                text: `B30 平均: ${stats.value.mean.toFixed(4)}`,
+                align: 'right',
+                x: -10,
+                style: {
+                    color: '#f59e0b',
+                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    textOutline: isDarkTheme.value ? '1px #000' : '1px #fff'
+                }
+            }
+        });
+    }
+    if (showMedianLine.value && chartData.value.length > 0) {
+        plotLines.push({
+            value: stats.value.median,
+            color: '#10b981', // 翡翠綠輔助線
+            width: 2,
+            dashStyle: 'ShortDot',
+            zIndex: 4,
+            label: {
+                text: `中位數: ${stats.value.median.toFixed(4)}`,
+                align: 'right',
+                x: -10,
+                style: {
+                    color: '#10b981',
+                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    textOutline: isDarkTheme.value ? '1px #000' : '1px #fff'
+                }
+            }
+        });
+    }
+
     return {
         chart: {
             type: 'line',
             height: chartHeight.value,
             backgroundColor: 'transparent',
-            spacingBottom: isMobileView.value ? 10 : 15,
+            spacingBottom: isMobileView.value ? 5 : 15,
             spacingLeft: isMobileView.value ? 5 : 10,
             spacingRight: isMobileView.value ? 5 : 10,
-            spacingTop: isMobileView.value ? 10 : 15
+            spacingTop: isMobileView.value ? 5 : 15,
+            events: {
+                click: function () {
+                    // 手機端點擊空白處隱藏 Tooltip
+                    if (this.tooltip) {
+                        this.tooltip.hide();
+                    }
+                }
+            }
         },
         title: {
-            text: '你的B30趨勢',
-            style: {
-                color: textColor,
-                fontWeight: 'bold',
-                fontFamily: 'inherit'
-            }
+            text: null
+        },
+        subtitle: {
+            text: null
         },
         xAxis: {
             title: { 
-                text: isMobileView.value ? '排名' : '歌曲',
+                text: isMobileView.value ? null : '歌曲',
                 style: { color: textColor }
             },
             // 手機版使用排名作為橫軸類別，避免歌名過長重疊擠壓；電腦版仍顯示歌名
@@ -121,8 +308,8 @@ const chartOptions = computed(() => {
                 : chartData.value.map(item => item.title),
             crosshair: true,
             labels: {
-                rotation: isMobileView.value ? 0 : -90, // 手機版不旋轉，保持水平易讀
-                step: isMobileView.value ? 3 : 1, // 手機版每隔 3 個顯示一個刻度，避免擁擠
+                enabled: !isMobileView.value, // 手機版完全不顯示 X 軸標籤，保持圖表極度乾淨
+                rotation: isMobileView.value ? 0 : -90, 
                 style: {
                     color: textColor,
                     fontSize: '10px'
@@ -144,7 +331,19 @@ const chartOptions = computed(() => {
                 },
             },
             crosshair: true,
-            gridLineColor: gridLineColor
+            gridLineColor: gridLineColor,
+            plotLines: plotLines
+        },
+        legend: {
+            enabled: true,
+            itemStyle: {
+                color: textColor,
+                fontSize: '11px',
+                fontFamily: 'inherit'
+            },
+            itemHoverStyle: {
+                color: '#3b82f6'
+            }
         },
         tooltip: {
             shared: true,
@@ -160,6 +359,15 @@ const chartOptions = computed(() => {
                 const exactValue = point.y.toLocaleString('zh-TW', { maximumFractionDigits: 4 });
                 const formattedScore = point.score.toLocaleString('zh-TW');
 
+                // 手機版特別在 Tooltip 內加入定位按鈕
+                const jumpBtnHtml = isMobileView.value ? `
+                    <div style="margin-top: 8px; text-align: right;">
+                        <a href="javascript:void(0)" onclick="window.jumpToRecord('${point.id}')" style="color: #3b82f6; font-size: 11px; font-weight: bold; text-decoration: none; border: 1px solid #3b82f6; padding: 3px 8px; border-radius: 4px; display: inline-block; background: rgba(59,130,246,0.05); cursor: pointer;">
+                            🎯 定位此成績
+                        </a>
+                    </div>
+                ` : '';
+
                 return `
                     <div style="padding: 4px;">
                         <b>#${point.index + 1} - ${point.title}</b><br/>
@@ -169,6 +377,7 @@ const chartOptions = computed(() => {
                         分數：<b>${formattedScore}</b><br/>
                         <span style="color:${this.points[0].color}">\u25CF</span>
                         單曲 PTT：<b>${exactValue}</b>
+                        ${jumpBtnHtml}
                     </div>
                 `;
             },
@@ -183,6 +392,34 @@ const chartOptions = computed(() => {
                     radius: isMobileView.value ? 3 : 4
                 },
             },
+            {
+                name: '平均值',
+                color: '#f59e0b',
+                visible: showMeanLine.value,
+                data: [],
+                dashStyle: 'Dash',
+                marker: { enabled: false },
+                events: {
+                    legendItemClick: function () {
+                        showMeanLine.value = !showMeanLine.value;
+                        return false;
+                    }
+                }
+            },
+            {
+                name: '中位數',
+                color: '#10b981',
+                visible: showMedianLine.value,
+                data: [],
+                dashStyle: 'ShortDot',
+                marker: { enabled: false },
+                events: {
+                    legendItemClick: function () {
+                        showMedianLine.value = !showMedianLine.value;
+                        return false;
+                    }
+                }
+            }
         ],
         credits: {
             enabled: false,
@@ -191,7 +428,65 @@ const chartOptions = computed(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.chart-wrapper-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.chart-header-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    transition: background-color 0.2s, transform 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover {
+        background: var(--options-bg);
+        transform: translateY(-1px);
+        
+        .chart-title {
+            color: var(--primary);
+            .info-icon {
+                color: var(--primary);
+                transform: scale(1.1);
+            }
+        }
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.chart-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    transition: color 0.2s;
+
+    .info-icon {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        transition: all 0.2s;
+    }
+}
+
+.chart-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
 .chart-container {
     width: 100%;
 }
@@ -202,5 +497,110 @@ const chartOptions = computed(() => {
     font-weight: bold;
     text-align: center;
     padding: 3rem;
+}
+
+/* Glassmorphic Dialog Styling */
+:deep(.p-dialog) {
+    background: var(--dialog-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+
+    .p-dialog-header {
+        background: var(--dialog-header-bg) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 1.25rem 1.5rem !important;
+        color: var(--text-color) !important;
+        font-weight: 700 !important;
+    }
+
+    .p-dialog-content {
+        background: transparent !important;
+        padding: 1.5rem !important;
+    }
+
+    .p-dialog-footer {
+        background: var(--dialog-header-bg) !important;
+        border-top: 1px solid var(--border-color) !important;
+        padding: 0.75rem 1.5rem !important;
+    }
+}
+
+.stats-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-detail-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--options-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.stat-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    
+    &.mean-bg {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+    &.median-bg {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    &.std-bg {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+    &.range-bg {
+        background: rgba(100, 116, 139, 0.1);
+        color: var(--text-muted);
+    }
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+
+    &.text-gold {
+        color: #f59e0b;
+    }
+    &.text-emerald {
+        color: #10b981;
+    }
+    &.text-blue {
+        color: #3b82f6;
+    }
+}
+
+.close-btn {
+    width: 100%;
 }
 </style>

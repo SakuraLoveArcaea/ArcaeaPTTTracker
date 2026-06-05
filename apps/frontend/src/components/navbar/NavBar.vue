@@ -298,6 +298,26 @@ const executeLogout = async () => {
   }
 }
 
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.65rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  
+  .stats-container {
+    gap: 0.4rem !important;
+    
+    .stat-box {
+      padding: 0.35rem 0.65rem !important;
+      font-size: 0.75rem !important;
+      
+      .value {
+        font-size: 0.85rem !important;
+      }
+    }
+  }
+}
+
 :root:not(.p-dark) {
   .navbar {
     background: rgba(255, 255, 255, 0.7);

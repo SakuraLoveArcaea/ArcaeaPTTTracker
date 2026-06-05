@@ -9,7 +9,7 @@
         <!-- Tab 標籤頁 Dashboard 佈局 -->
         <div class="dashboard-content-grid">
             <div class="tabs-card-wrapper glass-panel">
-                <Tabs value="table">
+                <Tabs v-model:value="UIStore.activeTab">
                     <TabList>
                         <Tab value="table">
                             <i class="pi pi-table tab-icon"></i>成績表格
@@ -48,13 +48,13 @@
     <!-- 新增成績 Dialog -->
     <AddRecordDialog v-model:visible="isAddDialogOpen" @save="handleSave"/>
 
-    <!-- 懸浮新增按鈕 (FAB) -->
-    <div class="fab-container">
+    <!-- 懸浮新增按鈕 (FAB) - 僅在表格分頁顯示，避免遮擋圖表 -->
+    <div v-if="UIStore.activeTab === 'table'" class="fab-container">
         <Button
             icon="pi pi-plus"
-            severity="primary"
             rounded
             raised
+            severity="success"
             class="fab-btn"
             @click="isAddDialogOpen = true"
             :title="`新增成績 (${isMac ? '⌘K' : 'Ctrl+K'})`"
@@ -131,6 +131,7 @@ const store = useAuthStore();
 
 onMounted(() => {
     UIStore.initTheme();
+    UIStore.activeTab = 'table'; // 進入頁面預設在成績表格 Tab
     onAuthStateChanged(auth, async (user: User | null) => {
         if (user) {
             store.setCurrentUser(user);
@@ -156,6 +157,10 @@ onUnmounted(() => {
   gap: 1.5rem;
   width: 100%;
   box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    gap: 0.75rem;
+  }
 }
 
 .navbar-wrapper {
@@ -245,6 +250,10 @@ onUnmounted(() => {
     background: var(--options-bg) !important;
   }
 
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem !important;
+  }
+
   &.p-tab-active {
     color: #3b82f6 !important;
     font-weight: 700 !important;
@@ -267,6 +276,10 @@ onUnmounted(() => {
 :deep(.p-tabpanels) {
   background: transparent !important;
   padding: 1.5rem !important;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem !important;
+  }
 }
 
 // 日間模式適應樣式 (Day/Light Mode)
@@ -295,9 +308,8 @@ onUnmounted(() => {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35) !important;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-  border: none !important;
+  border-radius: 50% !important;
 
   :deep(.p-button-icon) {
     font-size: 1.35rem !important;
@@ -305,7 +317,6 @@ onUnmounted(() => {
 
   &:hover {
     transform: translateY(-4px) scale(1.05) !important;
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5) !important;
   }
 
   &:active {
@@ -322,7 +333,6 @@ onUnmounted(() => {
   .fab-btn {
     width: 48px !important;
     height: 48px !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
     
     :deep(.p-button-icon) {
       font-size: 1.15rem !important;

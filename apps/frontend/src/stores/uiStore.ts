@@ -11,6 +11,11 @@ export const useUIStore = defineStore("UI", () => {
     const isExportDialogOpen = ref(false);
     const isMergeDialogOpen = ref(false);
     const editingRecord = ref<Record | null>(null);
+    
+    // 行動版圖表跳轉與定位狀態
+    const activeTab = ref('table');
+    const expandedRecordId = ref<string | null>(null);
+    const highlightedRecordId = ref<string | null>(null);
 
     // 主題狀態 (Day / Night Theme)
     const isDarkTheme = ref(true); // 預設為暗色系電競風
@@ -57,6 +62,9 @@ export const useUIStore = defineStore("UI", () => {
         isExportDialogOpen,
         isMergeDialogOpen,
         editingRecord,
+        activeTab,
+        expandedRecordId,
+        highlightedRecordId,
         isDarkTheme,
         initTheme,
         toggleTheme

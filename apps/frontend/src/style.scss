@@ -107,6 +107,10 @@ body {
   padding: 1.5rem;
   box-sizing: border-box;
   text-align: left;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+  }
 }
 
 // 4. 重用玻璃樣式卡片

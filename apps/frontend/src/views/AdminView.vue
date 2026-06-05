@@ -79,7 +79,7 @@
                     </div>
 
                     <div v-else class="tabs-card-wrapper glass-panel">
-                        <Tabs value="table">
+                        <Tabs v-model:value="UIStore.activeTab">
                             <TabList>
                                 <Tab value="table">
                                     <i class="pi pi-table tab-icon"></i>成績表格
@@ -200,6 +200,7 @@ const UIStore = useUIStore();
 // 元件掛載時，先獲取所有玩家並初始化主題
 onMounted(() => {
     UIStore.initTheme();
+    UIStore.activeTab = 'table'; // 進入頁面預設在成績表格 Tab
     fetchUsers();
 });
 </script>
