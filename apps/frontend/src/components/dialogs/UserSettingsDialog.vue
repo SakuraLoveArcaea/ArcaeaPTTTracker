@@ -1,6 +1,7 @@
 <template>
     <Dialog v-model:visible="visible" modal header="個人設定" :style="{ width: '90vw', maxWidth: '350px' }">
         <div class="settings-container-dialog">
+            <!-- 顯示主題 -->
             <div class="settings-row">
                 <span class="settings-label">
                     <i class="pi pi-palette settings-icon"></i>顯示主題
@@ -15,6 +16,17 @@
                     size="small"
                 />
             </div>
+            
+            <!-- 實驗性手機分數鍵盤 -->
+            <div class="settings-row">
+                <span class="settings-label">
+                    <i class="pi pi-flask settings-icon"></i>實驗性手機分數鍵盤
+                </span>
+                <ToggleSwitch
+                    v-model="UIStore.useExperimentalScoreInput"
+                    @change="onExperimentalChange"
+                />
+            </div>
         </div>
         <template #footer>
             <Button label="關閉" outlined severity="secondary" @click="visible = false" />
@@ -26,6 +38,7 @@
 import { ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
 import SelectButton from 'primevue/selectbutton';
+import ToggleSwitch from 'primevue/toggleswitch';
 import Button from 'primevue/button';
 import { useUIStore } from '@/stores/uiStore';
 
@@ -42,6 +55,10 @@ const onThemeChange = (e: any) => {
     if (e.value && (e.value === 'dark') !== UIStore.isDarkTheme) {
         UIStore.toggleTheme();
     }
+};
+
+const onExperimentalChange = () => {
+    localStorage.setItem('arcaea_experimental_score_input', String(UIStore.useExperimentalScoreInput));
 };
 
 // 監聽 UIStore 的主題變更（以防在其他地方切換）

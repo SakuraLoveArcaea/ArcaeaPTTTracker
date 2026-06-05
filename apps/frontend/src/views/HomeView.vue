@@ -48,6 +48,9 @@
     
     <!-- 新增成績 Dialog -->
     <AddRecordDialog v-model:visible="isAddDialogOpen" @save="handleSave"/>
+    
+    <!-- 專屬手機分數鍵盤 Dialog -->
+    <ScoreInputDialog @save="handleScoreSave" />
 
     <!-- 懸浮新增按鈕 (FAB) - 僅在表格分頁顯示，避免遮擋圖表 -->
     <div v-if="UIStore.activeTab === 'table'" class="fab-container">
@@ -67,6 +70,7 @@
 import NavBar from "@/components/navbar/NavBar.vue";
 import TableView from "@/components/table/TableView.vue";
 import AddRecordDialog from "@/components/dialogs/AddRecordDialog.vue";
+import ScoreInputDialog from "@/components/dialogs/ScoreInputDialog.vue";
 import Button from 'primevue/button';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
@@ -127,6 +131,20 @@ const onKeyDown = (e: KeyboardEvent) => {
 const handleSave = (form: any) => {
     onAddRecordForm(form)
     isAddDialogOpen.value = false;
+}
+
+const handleScoreSave = (payload: { id: string, score: number }) => {
+    const oldRecord = recordsStore.records.find(r => r.id === payload.id);
+    if (oldRecord) {
+        recordsStore.onAddRecordForm({
+            id: payload.id,
+            title: oldRecord.title,
+            difficulty: oldRecord.difficulty,
+            constant: oldRecord.constant,
+            score: payload.score,
+            autoUpdate: oldRecord.autoUpdate
+        });
+    }
 }
 
 const store = useAuthStore();

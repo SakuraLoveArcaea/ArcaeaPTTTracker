@@ -57,7 +57,7 @@
                 />
             </div>
 
-            <div class="field-group-spaced">
+            <div class="field-group-spaced" v-if="!(UIStore.useExperimentalScoreInput && UIStore.editingRecord)">
                 <label class="label-text">分數 (Score)</label>
                 <InputNumber
                     ref="scoreInput"

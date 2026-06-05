@@ -17,6 +17,11 @@ export const useUIStore = defineStore("UI", () => {
     // 主題狀態 (Day / Night Theme)
     const isDarkTheme = ref(true); // 預設為暗色系電競風
 
+    // 實驗性功能設定
+    const useExperimentalScoreInput = ref(false);
+    const isScoreInputDialogOpen = ref(false);
+    const scoreInputRecord = ref<Record | null>(null);
+
     // 安全地在 Store 初始化時獲取 Toast 實例 (Pinia Store 通常在元件的 setup 階段被第一次實例化)
     let toast: any = null;
     try {
@@ -40,7 +45,7 @@ export const useUIStore = defineStore("UI", () => {
         }
     };
 
-    // 初始化顏色主題
+    // 初始化顏色主題與實驗性功能
     const initTheme = () => {
         const savedTheme = localStorage.getItem('arcaea_theme_preference');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -54,6 +59,10 @@ export const useUIStore = defineStore("UI", () => {
         } else {
             html.classList.remove('p-dark');
         }
+
+        // 初始化實驗性功能
+        const savedExp = localStorage.getItem('arcaea_experimental_score_input');
+        useExperimentalScoreInput.value = savedExp === 'true';
     };
 
     // 切換顏色主題
@@ -69,6 +78,12 @@ export const useUIStore = defineStore("UI", () => {
         }
     };
 
+    // 切換實驗性功能
+    const toggleExperimental = () => {
+        useExperimentalScoreInput.value = !useExperimentalScoreInput.value;
+        localStorage.setItem('arcaea_experimental_score_input', String(useExperimentalScoreInput.value));
+    };
+
     return {
         showToast,
         isAddDialogOpen,
@@ -79,6 +94,10 @@ export const useUIStore = defineStore("UI", () => {
         highlightedRecordId,
         isDarkTheme,
         initTheme,
-        toggleTheme
+        toggleTheme,
+        useExperimentalScoreInput,
+        isScoreInputDialogOpen,
+        scoreInputRecord,
+        toggleExperimental
     };
 });

@@ -126,6 +126,8 @@
                 :isLoading="isLoading"
                 :editable="editable"
                 :deletable="deletable"
+                :showFading="showFading"
+                :setting="setting"
                 @request-delete="requestDelete"
             />
         </div>
