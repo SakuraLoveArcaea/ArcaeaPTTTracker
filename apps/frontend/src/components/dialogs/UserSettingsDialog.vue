@@ -20,7 +20,7 @@
             <!-- 實驗性手機分數鍵盤 -->
             <div class="settings-row">
                 <span class="settings-label">
-                    <i class="pi pi-flask settings-icon"></i>實驗性手機分數鍵盤
+                    <i class="pi pi-keyboard settings-icon"></i>手機快捷分數鍵盤
                 </span>
                 <ToggleSwitch
                     v-model="UIStore.useExperimentalScoreInput"
