@@ -5,10 +5,22 @@
     <link rel="icon" type="image/svg+xml" href="/ArcaeaPTTTracker/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArcaeaPTTTracker</title>
-  <script type="module" crossorigin src="/ArcaeaPTTTracker/assets/admin-D6idh9zB.js"></script>
-  <link rel="modulepreload" crossorigin href="/ArcaeaPTTTracker/assets/best30Charts-DZ9BjR-n.js">
-  <link rel="stylesheet" crossorigin href="/ArcaeaPTTTracker/assets/best30Charts-XtX8c1Iu.css">
-  <link rel="stylesheet" crossorigin href="/ArcaeaPTTTracker/assets/admin-B-ENCX93.css">
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('arcaea_theme_preference');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const shouldBeDark = savedTheme !== null ? (savedTheme === 'dark') : systemPrefersDark;
+        if (shouldBeDark) {
+          document.documentElement.classList.add('p-dark');
+        } else {
+          document.documentElement.classList.remove('p-dark');
+        }
+      })();
+    </script>
+  <script type="module" crossorigin src="/ArcaeaPTTTracker/assets/admin-CrerCplb.js"></script>
+  <link rel="modulepreload" crossorigin href="/ArcaeaPTTTracker/assets/best30Charts-DSb5X1ix.js">
+  <link rel="stylesheet" crossorigin href="/ArcaeaPTTTracker/assets/best30Charts-D2_GeMow.css">
+  <link rel="stylesheet" crossorigin href="/ArcaeaPTTTracker/assets/admin-GjJGXkn9.css">
 </head>
 <body>
 <div id="app"></div>
