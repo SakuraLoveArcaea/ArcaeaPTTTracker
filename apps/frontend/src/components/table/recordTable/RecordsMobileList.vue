@@ -86,11 +86,15 @@
                                     <span class="detail-label">遊玩分數 (Score)</span>
                                     <span class="detail-value font-monospace">{{ formatScore(record.score) }}</span>
                                 </div>
-                                <div class="detail-item full-width">
+                                <div class="detail-item">
                                     <span class="detail-label">上次更新時間</span>
-                                    <span class="detail-value">
+                                    <span class="detail-value date-value-mobile">
                                         {{ record.lastUpdate ? new Date(record.lastUpdate).toLocaleString('zh-TW', { hour12: false }) : '-' }}
                                     </span>
+                                </div>
+                                <div v-if="UIStore.useExperimentalPttEstimation" class="detail-item chart-detail-item-mobile">
+                                    <span class="detail-label">分數 PTT 估算</span>
+                                    <InlinePttChart :record="record" :mini="true" />
                                 </div>
                             </div>
 
@@ -145,6 +149,7 @@ import Card from 'primevue/card';
 import Menu from 'primevue/menu';
 import { useUIStore } from '@/stores/uiStore';
 import { useRecordsStore } from '@/stores/recordsStore';
+import InlinePttChart from './InlinePttChart.vue';
 
 const props = defineProps({
     records: {
@@ -661,6 +666,40 @@ const getCardStyle = (lastUpdate: number) => {
     &.full-width {
         grid-column: span 2;
     }
+}
+
+.ptt-est-link {
+  font-size: 0.8rem;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+  }
+}
+
+.chart-detail-item-mobile {
+  // 覆寫內嵌圖表在卡片單格內部的樣式，確保精緻小巧
+  :deep(.inline-ptt-chart-container) {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    margin-top: 0 !important;
+    gap: 0.35rem !important;
+
+    .chart-container-inline {
+      height: 100px !important; // 確保高度在手機卡片中為 100px
+    }
+  }
+}
+
+.date-value-mobile {
+  font-size: 0.72rem !important;
+  word-break: break-all;
 }
 
 .detail-label {

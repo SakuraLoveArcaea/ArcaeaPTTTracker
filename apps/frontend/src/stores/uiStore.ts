@@ -22,6 +22,9 @@ export const useUIStore = defineStore("UI", () => {
     const isScoreInputDialogOpen = ref(false);
     const scoreInputRecord = ref<Record | null>(null);
 
+    const useExperimentalPttEstimation = ref(false);
+    const pttEstimationStartPoint = ref<string>('9500000'); // '9500000' | '9800000'
+
     // 安全地在 Store 初始化時獲取 Toast 實例 (Pinia Store 通常在元件的 setup 階段被第一次實例化)
     let toast: any = null;
     try {
@@ -63,6 +66,12 @@ export const useUIStore = defineStore("UI", () => {
         // 初始化實驗性功能
         const savedExp = localStorage.getItem('arcaea_experimental_score_input');
         useExperimentalScoreInput.value = savedExp === 'true';
+
+        const savedPttExp = localStorage.getItem('arcaea_experimental_ptt_estimation');
+        useExperimentalPttEstimation.value = savedPttExp === 'true';
+
+        const savedPttStart = localStorage.getItem('arcaea_ptt_estimation_start_point');
+        pttEstimationStartPoint.value = (savedPttStart === '9500000' || savedPttStart === '9800000') ? savedPttStart : '9500000';
     };
 
     // 切換顏色主題
@@ -98,6 +107,8 @@ export const useUIStore = defineStore("UI", () => {
         useExperimentalScoreInput,
         isScoreInputDialogOpen,
         scoreInputRecord,
-        toggleExperimental
+        toggleExperimental,
+        useExperimentalPttEstimation,
+        pttEstimationStartPoint
     };
 });

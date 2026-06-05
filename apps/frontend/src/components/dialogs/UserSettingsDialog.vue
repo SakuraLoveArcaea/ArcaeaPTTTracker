@@ -27,6 +27,33 @@
                     @change="onExperimentalChange"
                 />
             </div>
+
+            <!-- 實驗性分數 PTT 估算 -->
+            <div class="settings-row">
+                <span class="settings-label">
+                    <i class="pi pi-chart-line settings-icon"></i>實驗性分數 PTT 估算
+                </span>
+                <ToggleSwitch
+                    v-model="UIStore.useExperimentalPttEstimation"
+                    @change="onPttEstimationChange"
+                />
+            </div>
+
+            <!-- 圖表橫軸起點設定 -->
+            <div v-if="UIStore.useExperimentalPttEstimation" class="settings-row">
+                <span class="settings-label">
+                    <i class="pi pi-sliders-h settings-icon"></i>估算圖表起點
+                </span>
+                <Select
+                    v-model="UIStore.pttEstimationStartPoint"
+                    :options="startPointOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    @change="onStartPointChange"
+                    size="small"
+                    class="start-point-select"
+                />
+            </div>
         </div>
         <template #footer>
             <Button label="關閉" outlined severity="secondary" @click="visible = false" />
@@ -40,6 +67,7 @@ import Dialog from 'primevue/dialog';
 import SelectButton from 'primevue/selectbutton';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Button from 'primevue/button';
+import Select from 'primevue/select';
 import { useUIStore } from '@/stores/uiStore';
 
 const visible = defineModel<boolean>('visible', { default: false });
@@ -60,6 +88,20 @@ const onThemeChange = (e: any) => {
 const onExperimentalChange = () => {
     localStorage.setItem('arcaea_experimental_score_input', String(UIStore.useExperimentalScoreInput));
 };
+
+const onPttEstimationChange = () => {
+    localStorage.setItem('arcaea_experimental_ptt_estimation', String(UIStore.useExperimentalPttEstimation));
+};
+
+const startPointOptions = ref([
+    { label: '950 萬 (AA)', value: '9500000' },
+    { label: '980 萬 (EX)', value: '9800000' }
+]);
+
+const onStartPointChange = () => {
+    localStorage.setItem('arcaea_ptt_estimation_start_point', UIStore.pttEstimationStartPoint);
+};
+
 
 // 監聽 UIStore 的主題變更（以防在其他地方切換）
 watch(() => UIStore.isDarkTheme, (newVal) => {
@@ -95,5 +137,9 @@ watch(() => UIStore.isDarkTheme, (newVal) => {
     color: #3b82f6;
     font-size: 1.05rem;
   }
+}
+
+.start-point-select {
+  width: 135px;
 }
 </style>
