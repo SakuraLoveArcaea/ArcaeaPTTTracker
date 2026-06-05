@@ -31,10 +31,13 @@ const UIStore = useUIStore();
 const { records } = storeToRefs(recordsStore);
 const { isDarkTheme } = storeToRefs(UIStore);
 
-// 動態響應式高度管理
+// 動態響應式高度與手機檢視管理
 const chartHeight = ref(window.innerWidth < 1025 ? 380 : 480);
+const isMobileView = ref(window.innerWidth < 768);
+
 const handleResize = () => {
     chartHeight.value = window.innerWidth < 1025 ? 380 : 480;
+    isMobileView.value = window.innerWidth < 768;
 };
 
 onMounted(() => {
@@ -93,7 +96,11 @@ const chartOptions = computed(() => {
         chart: {
             type: 'line',
             height: chartHeight.value,
-            backgroundColor: 'transparent'
+            backgroundColor: 'transparent',
+            spacingBottom: isMobileView.value ? 10 : 15,
+            spacingLeft: isMobileView.value ? 5 : 10,
+            spacingRight: isMobileView.value ? 5 : 10,
+            spacingTop: isMobileView.value ? 10 : 15
         },
         title: {
             text: '你的B30趨勢',
@@ -105,13 +112,17 @@ const chartOptions = computed(() => {
         },
         xAxis: {
             title: { 
-                text: '歌曲',
+                text: isMobileView.value ? '排名' : '歌曲',
                 style: { color: textColor }
             },
-            categories: chartData.value.map(item => item.title),
+            // 手機版使用排名作為橫軸類別，避免歌名過長重疊擠壓；電腦版仍顯示歌名
+            categories: isMobileView.value 
+                ? chartData.value.map((_, idx) => `#${idx + 1}`) 
+                : chartData.value.map(item => item.title),
             crosshair: true,
             labels: {
-                rotation: -90,
+                rotation: isMobileView.value ? 0 : -90, // 手機版不旋轉，保持水平易讀
+                step: isMobileView.value ? 3 : 1, // 手機版每隔 3 個顯示一個刻度，避免擁擠
                 style: {
                     color: textColor,
                     fontSize: '10px'
@@ -164,11 +175,12 @@ const chartOptions = computed(() => {
         },
         series: [
             {
-                name: '分數',
+                name: '單曲 PTT',
                 data: chartData.value,
                 color: '#3b82f6',
                 marker: {
                     enabled: true,
+                    radius: isMobileView.value ? 3 : 4
                 },
             },
         ],
