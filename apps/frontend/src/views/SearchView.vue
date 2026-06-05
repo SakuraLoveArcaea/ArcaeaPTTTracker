@@ -3,15 +3,17 @@
         <h2 class="title">Arcaea 定數查詢</h2>
 
         <div class="search-box">
-            <input
+            <InputText
                 v-model="searchQuery"
                 @keyup.enter="performSearch"
-                type="text"
                 placeholder="輸入曲名或別名 (例如: 風暴, GL, tst)..."
+                class="search-input"
             />
-            <button @click="performSearch" :disabled="loading">
-                {{ loading ? '搜尋中...' : '搜尋' }}
-            </button>
+            <Button
+                :label="loading ? '搜尋中...' : '搜尋'"
+                :loading="loading"
+                @click="performSearch"
+            />
         </div>
 
         <div v-if="hasSearched" class="results-area">
@@ -53,6 +55,8 @@
 
 <script setup>
 import { ref } from 'vue';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
 // 確保使用 v5 版本的具名匯出
 import { algoliasearch } from 'algoliasearch';
 
@@ -114,43 +118,8 @@ const performSearch = async () => {
   margin-bottom: 24px;
 }
 
-.search-box input {
+.search-input {
   flex: 1;
-  padding: 12px 16px;
-  font-size: 16px;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
-  color: var(--text-color);
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.3s ease;
-
-  &:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-  }
-}
-
-.search-box button {
-  padding: 0 24px;
-  font-size: 16px;
-  font-weight: bold;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:disabled {
-    background-color: var(--text-muted);
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &:hover:not(:disabled) {
-    background-color: var(--primary-hover);
-  }
 }
 
 /* 表格樣式 */

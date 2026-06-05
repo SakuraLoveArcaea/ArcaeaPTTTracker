@@ -3,24 +3,36 @@
         <!-- 左側：標題與 LOGO -->
         <div class="navbar-brand">
             <i class="pi pi-compass brand-icon"></i>
-            <h2 class="brand-title">Arcaea PTT Tracker</h2>
+            <h2 class="brand-title">
+                <span class="desktop-title">Arcaea PTT Tracker</span>
+                <span class="mobile-title">Arcaea PTT</span>
+            </h2>
         </div>
 
         <!-- 中間：核心指標看板 (玻璃質感膠囊) -->
         <div class="stats-container">
             <div class="stat-box b30" title="您的 Best 30 (最佳 30 次成績) 平均潛力值">
                 <i class="pi pi-star-fill stat-icon"></i>
-                <span class="label">B30 平均：</span>
+                <span class="label">
+                    <span class="desktop-label">B30 平均：</span>
+                    <span class="mobile-label">B30:</span>
+                </span>
                 <span class="value">{{ b30Avg.toFixed(4) }}</span>
             </div>
             <div class="stat-box r10" title="您的最高單曲前 10 次成績平均值 (預估最高)">
                 <i class="pi pi-bolt stat-icon"></i>
-                <span class="label">最高 R10 平均：</span>
+                <span class="label">
+                    <span class="desktop-label">最高 R10 平均：</span>
+                    <span class="mobile-label">R10:</span>
+                </span>
                 <span class="value">{{ r10Avg.toFixed(4) }}</span>
             </div>
             <div class="stat-box max-ptt" title="當您 Recent 10 遊玩皆能發揮極限時，所能達到的理論最高潛力值">
                 <i class="pi pi-chart-line stat-icon"></i>
-                <span class="label">預估最高 PTT：</span>
+                <span class="label">
+                    <span class="desktop-label">預估最高 PTT：</span>
+                    <span class="mobile-label">最高:</span>
+                </span>
                 <span class="value">{{ maxPtt.toFixed(4) }}</span>
             </div>
         </div>
@@ -38,15 +50,18 @@
                 :title="isDarkTheme ? '切換至日間模式' : '切換至夜間模式'"
             />
             <div v-if="currentUser && !forceLogout" class="user-profile">
-                <img
-                    class="avatar"
+                <Avatar
                     v-if="currentUser.photoURL"
-                    :src="currentUser.photoURL"
-                    alt="User Avatar"
+                    :image="currentUser.photoURL"
+                    shape="circle"
+                    class="avatar"
                 />
-                <div v-else class="avatar-placeholder">
-                    <i class="pi pi-user"></i>
-                </div>
+                <Avatar
+                    v-else
+                    icon="pi pi-user"
+                    shape="circle"
+                    class="avatar-placeholder"
+                />
                 <span class="username">{{ currentUser.displayName }}</span>
                 <Button label="登出" severity="danger" size="small" outlined @click="requestLogout" class="logout-btn"/>
             </div>
@@ -71,6 +86,7 @@
 
 <script setup lang="ts">
 import { Button } from "primevue";
+import Avatar from "primevue/avatar";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "@/stores/authStore";
 import { useRecordsStore } from "@/stores/recordsStore";
@@ -146,6 +162,14 @@ const executeLogout = async () => {
   }
 }
 
+// 響應式標題控制
+.mobile-title {
+  display: none;
+}
+.desktop-title {
+  display: inline;
+}
+
 // 中間指標看版
 .stats-container {
   display: flex;
@@ -173,6 +197,13 @@ const executeLogout = async () => {
 
     .label {
       color: #94a3b8;
+    }
+
+    .mobile-label {
+      display: none;
+    }
+    .desktop-label {
+      display: inline;
     }
 
     .value {
@@ -274,47 +305,90 @@ const executeLogout = async () => {
   }
 }
 
-// 響應式佈局
+// 響應式佈局重新設計 (手機版利用 Grid 將 stats-container 定位在下方)
 @media (max-width: 1024px) {
   .navbar {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
-    padding: 1rem;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
   }
 
   .navbar-brand {
-    justify-content: center;
-  }
-
-  .stats-container {
-    order: 3;
-    width: 100%;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-content: flex-start;
   }
 
   .navbar-user {
-    order: 2;
-    justify-content: center;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-content: flex-end;
+  }
+
+  // 手機版隱藏冗長文字
+  .desktop-title {
+    display: none;
+  }
+  .mobile-title {
+    display: inline;
+  }
+
+  // 指標看板手機版精簡化
+  .stats-container {
+    grid-column: span 2 !important;
+    grid-row: 2 !important;
+    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; // 強制不換行，無論如何都在同一列
+    justify-content: space-between !important; // 均勻分佈
+    gap: 0.2rem !important;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.45rem;
+    margin-top: 0.1rem;
+
+    .stat-box {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      font-size: 0.72rem !important; // 微調字體大小，確保在超窄螢幕上仍能完美容納
+      gap: 0.15rem !important; // 緊湊間距
+      transform: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      white-space: nowrap !important; // 單個指標內部不換行
+      flex-shrink: 0 !important;
+
+      .stat-icon {
+        font-size: 0.75rem !important;
+      }
+
+      .desktop-label {
+        display: none;
+      }
+      .mobile-label {
+        display: inline;
+        font-size: 0.68rem !important;
+        margin-right: 0.05rem;
+      }
+
+      .value {
+        font-size: 0.8rem !important;
+      }
+    }
   }
 }
 
 @media (max-width: 768px) {
   .navbar {
-    padding: 0.65rem 0.75rem !important;
-    gap: 0.5rem !important;
+    padding: 0.5rem 0.75rem;
   }
-  
-  .stats-container {
-    gap: 0.4rem !important;
-    
-    .stat-box {
-      padding: 0.35rem 0.65rem !important;
-      font-size: 0.75rem !important;
-      
-      .value {
-        font-size: 0.85rem !important;
-      }
-    }
+  .navbar-user .user-profile .username {
+    display: none; // 手機螢幕更小時，隱藏使用者暱稱以防擠壓
   }
 }
 
@@ -336,6 +410,14 @@ const executeLogout = async () => {
 
     .label {
       color: #64748b;
+    }
+  }
+
+  // 手機版無框指標，日間模式文字顏色微調
+  @media (max-width: 1024px) {
+    .stats-container .stat-box {
+      background: transparent !important;
+      border: none !important;
     }
   }
 

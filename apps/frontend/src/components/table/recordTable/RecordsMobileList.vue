@@ -11,7 +11,7 @@
         </div>
 
         <div v-else class="cards-wrapper">
-            <div
+            <Card
                 v-for="(record, index) in records"
                 :key="record.id"
                 :id="'record-card-' + record.id"
@@ -21,80 +21,82 @@
                     'highlight-flash': UIStore.highlightedRecordId === record.id
                 }"
             >
-                <!-- 卡片頭部 (收合時可點擊展開) -->
-                <div class="card-header" @click="toggleExpand(record.id)">
-                    <div class="header-left">
-                        <div
-                            v-if="deletable"
-                            class="rank-badge clickable-rank"
-                            :class="{ 'top-three': index < 3 }"
-                            @click.stop="onDeleteClick(record)"
-                            title="點擊刪除此成績"
-                        >
-                            {{ index < 30 ? index + 1 : '-' }}
-                        </div>
-                        <div
-                            v-else
-                            class="rank-badge"
-                            :class="{ 'top-three': index < 3 }"
-                        >
-                            {{ index < 30 ? index + 1 : '-' }}
-                        </div>
-                        <div class="title-section">
-                            <span class="song-title">
-                                {{ record.title }}
-                                <i v-if="record.autoUpdate" class="pi pi-link db-badge" title="資料庫自動更新"></i>
-                            </span>
-                            <span class="diff-badge" :style="{ backgroundColor: diffColors[record.difficulty] }">
-                                {{ record.difficulty }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="header-right">
-                        <div class="ptt-score-group">
-                            <span class="play-ptt">{{ record.playPtt.toFixed(4) }}</span>
-                            <span class="score-text">{{ formatScore(record.score) }}</span>
-                        </div>
-                        <i class="pi chevron-icon" :class="expandedRecordId === record.id ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
-                    </div>
-                </div>
-
-                <!-- 展開詳細資訊與操作按鈕 -->
-                <transition name="slide-fade">
-                    <div v-if="expandedRecordId === record.id" class="card-details">
-                        <div class="detail-divider"></div>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <span class="detail-label">單曲定數 (Constant)</span>
-                                <span class="detail-value font-monospace">{{ record.constant.toFixed(1) }}</span>
+                <template #content>
+                    <!-- 卡片頭部 (收合時可點擊展開) -->
+                    <div class="card-header" @click="toggleExpand(record.id)">
+                        <div class="header-left">
+                            <div
+                                v-if="deletable"
+                                class="rank-badge clickable-rank"
+                                :class="{ 'top-three': index < 3 }"
+                                @click.stop="onDeleteClick(record)"
+                                title="點擊刪除此成績"
+                            >
+                                {{ index < 30 ? index + 1 : '-' }}
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">遊玩分數 (Score)</span>
-                                <span class="detail-value font-monospace">{{ formatScore(record.score) }}</span>
+                            <div
+                                v-else
+                                class="rank-badge"
+                                :class="{ 'top-three': index < 3 }"
+                            >
+                                {{ index < 30 ? index + 1 : '-' }}
                             </div>
-                            <div class="detail-item full-width">
-                                <span class="detail-label">上次更新時間</span>
-                                <span class="detail-value">
-                                    {{ record.lastUpdate ? new Date(record.lastUpdate).toLocaleString('zh-TW', { hour12: false }) : '-' }}
+                            <div class="title-section">
+                                <span class="song-title">
+                                    {{ record.title }}
+                                    <i v-if="record.autoUpdate" class="pi pi-link db-badge" title="資料庫自動更新"></i>
+                                </span>
+                                <span class="diff-badge" :style="{ backgroundColor: diffColors[record.difficulty] }">
+                                    {{ record.difficulty }}
                                 </span>
                             </div>
                         </div>
-
-                        <!-- 編輯動作列 -->
-                        <div v-if="editable" class="card-actions">
-                            <Button
-                                label="編輯成績"
-                                icon="pi pi-pencil"
-                                outlined
-                                severity="secondary"
-                                size="small"
-                                class="action-btn"
-                                @click="onEditClick(record)"
-                            />
+                        <div class="header-right">
+                            <div class="ptt-score-group">
+                                <span class="play-ptt">{{ record.playPtt.toFixed(4) }}</span>
+                                <span class="score-text">{{ formatScore(record.score) }}</span>
+                            </div>
+                            <i class="pi chevron-icon" :class="expandedRecordId === record.id ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
                         </div>
                     </div>
-                </transition>
-            </div>
+
+                    <!-- 展開詳細資訊與操作按鈕 -->
+                    <transition name="slide-fade">
+                        <div v-if="expandedRecordId === record.id" class="card-details">
+                            <div class="detail-divider"></div>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">單曲定數 (Constant)</span>
+                                    <span class="detail-value font-monospace">{{ record.constant.toFixed(1) }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">遊玩分數 (Score)</span>
+                                    <span class="detail-value font-monospace">{{ formatScore(record.score) }}</span>
+                                </div>
+                                <div class="detail-item full-width">
+                                    <span class="detail-label">上次更新時間</span>
+                                    <span class="detail-value">
+                                        {{ record.lastUpdate ? new Date(record.lastUpdate).toLocaleString('zh-TW', { hour12: false }) : '-' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- 編輯動作列 -->
+                            <div v-if="editable" class="card-actions">
+                                <Button
+                                    label="編輯成績"
+                                    icon="pi pi-pencil"
+                                    outlined
+                                    severity="secondary"
+                                    size="small"
+                                    class="action-btn"
+                                    @click="onEditClick(record)"
+                                />
+                            </div>
+                        </div>
+                    </transition>
+                </template>
+            </Card>
         </div>
     </div>
 </template>
@@ -103,6 +105,7 @@
 import { ref, PropType, watch } from 'vue';
 import { Record, Difficulty } from '@/utils/record';
 import Button from 'primevue/button';
+import Card from 'primevue/card';
 import { useUIStore } from '@/stores/uiStore';
 
 const props = defineProps({
@@ -199,16 +202,20 @@ const onDeleteClick = (record: Record) => {
 }
 
 .record-card {
-    background: rgba(30, 41, 59, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
     padding: 0;
     overflow: hidden;
     transition: border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
+    box-shadow: none !important;
+
+    :deep(.p-card-body), :deep(.p-card-content) {
+        padding: 0 !important;
+    }
 
     &.expanded {
-        background: rgba(30, 41, 59, 0.45);
-        border-color: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.3) !important;
     }
 
     &.highlight-flash {
@@ -249,8 +256,8 @@ const onDeleteClick = (record: Record) => {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--options-bg);
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -287,7 +294,7 @@ const onDeleteClick = (record: Record) => {
 .song-title {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -355,7 +362,7 @@ const onDeleteClick = (record: Record) => {
 
 .detail-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--border-color);
     width: 100%;
 }
 
@@ -383,7 +390,7 @@ const onDeleteClick = (record: Record) => {
 
 .detail-value {
     font-size: 0.85rem;
-    color: #cbd5e1;
+    color: var(--text-color);
     font-weight: 600;
 
     &.font-monospace {
@@ -413,35 +420,5 @@ const onDeleteClick = (record: Record) => {
     max-height: 0;
     padding-bottom: 0 !important;
     overflow: hidden;
-}
-
-// 日間模式適應樣式 (Day/Light Mode)
-:root:not(.p-dark) {
-    .record-card {
-        background: rgba(255, 255, 255, 0.6);
-        border-color: rgba(15, 23, 42, 0.05);
-
-        &.expanded {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: rgba(59, 130, 246, 0.15);
-        }
-    }
-
-    .song-title {
-        color: #0f172a;
-    }
-
-    .detail-divider {
-        background: rgba(15, 23, 42, 0.06);
-    }
-
-    .detail-value {
-        color: #334155;
-    }
-    
-    .rank-badge {
-        background: rgba(15, 23, 42, 0.03);
-        border-color: rgba(15, 23, 42, 0.06);
-    }
 }
 </style>

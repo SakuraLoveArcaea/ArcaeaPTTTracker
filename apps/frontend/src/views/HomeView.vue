@@ -10,7 +10,7 @@
         <div class="dashboard-content-grid">
             <div class="tabs-card-wrapper glass-panel">
                 <Tabs v-model:value="UIStore.activeTab">
-                    <TabList>
+                    <TabList class="home-tablist">
                         <Tab value="table">
                             <i class="pi pi-table tab-icon"></i>成績表格
                         </Tab>
@@ -18,7 +18,7 @@
                             <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
                         </Tab>
                     </TabList>
-                    <TabPanels>
+                    <TabPanels class="home-tabpanels">
                         <TabPanel value="table">
                             <div class="panel-header-row">
                                 <h3 class="panel-title">
@@ -205,75 +205,14 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* PrimeVue Tabs 內部樣式穿透與深度自定義樣式 */
-:deep(.p-tabs) {
-  background: transparent !important;
-  display: flex;
-  flex-direction: column;
-}
-
-:deep(.p-tablist) {
+.home-tablist {
   background: var(--dialog-header-bg) !important;
   border-bottom: 1px solid var(--border-color) !important;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-  
-  .p-tablist-content {
-    background: transparent !important;
-  }
 }
 
-:deep(.p-tablist-tablist) {
-  display: flex;
-  background: transparent !important;
-  border: none !important;
-}
-
-:deep(.p-tab) {
-  color: var(--text-muted) !important;
-  font-weight: 600 !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 1rem 1.5rem !important;
-  transition: all 0.25s ease !important;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-
-  .tab-icon {
-    font-size: 0.9rem;
-  }
-
-  &:hover {
-    color: var(--text-color) !important;
-    background: var(--options-bg) !important;
-  }
-
-  @media (max-width: 768px) {
-    padding: 0.75rem 1rem !important;
-  }
-
-  &.p-tab-active {
-    color: #3b82f6 !important;
-    font-weight: 700 !important;
-    position: relative;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: #3b82f6;
-      border-top-left-radius: 3px;
-      border-top-right-radius: 3px;
-    }
-  }
-}
-
-:deep(.p-tabpanels) {
+.home-tabpanels {
   background: transparent !important;
   padding: 1.5rem !important;
 

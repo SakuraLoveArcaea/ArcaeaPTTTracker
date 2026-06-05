@@ -79,8 +79,8 @@
                     </div>
 
                     <div v-else class="tabs-card-wrapper glass-panel">
-                        <Tabs v-model:value="UIStore.activeTab">
-                            <TabList>
+                        <Tabs v-model:value="UIStore.activeTab" class="admin-tabs">
+                            <TabList class="admin-tablist">
                                 <Tab value="table">
                                     <i class="pi pi-table tab-icon"></i>成績表格
                                 </Tab>
@@ -88,8 +88,8 @@
                                     <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
                                 </Tab>
                             </TabList>
-                            <TabPanels>
-                                <TabPanel value="table">
+                            <TabPanels class="admin-tabpanels">
+                                <TabPanel value="table" class="admin-tabpanel">
                                     <div class="table-card-header">
                                         <h3 class="card-title">成績清單 (唯讀)</h3>
                                         <span class="read-only-badge">
@@ -105,7 +105,7 @@
                                         />
                                     </div>
                                 </TabPanel>
-                                <TabPanel value="chart">
+                                <TabPanel value="chart" class="admin-tabpanel">
                                     <div class="chart-card-header">
                                         <h3 class="card-title">Best 30 PTT 曲線與分佈</h3>
                                     </div>
@@ -562,72 +562,20 @@ onMounted(() => {
   }
 }
 
-/* PrimeVue Tabs 內部樣式穿透與深度自定義樣式 */
-:deep(.p-tabs) {
-  background: transparent !important;
+.admin-tabs {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-:deep(.p-tablist) {
+.admin-tablist {
   background: var(--dialog-header-bg) !important;
   border-bottom: 1px solid var(--border-color) !important;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-  
-  .p-tablist-content {
-    background: transparent !important;
-  }
 }
 
-:deep(.p-tablist-tablist) {
-  display: flex;
-  background: transparent !important;
-  border: none !important;
-}
-
-:deep(.p-tab) {
-  color: var(--text-muted) !important;
-  font-weight: 600 !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 1rem 1.5rem !important;
-  transition: all 0.25s ease !important;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-
-  .tab-icon {
-    font-size: 0.9rem;
-  }
-
-  &:hover {
-    color: var(--text-color) !important;
-    background: var(--options-bg) !important;
-  }
-
-  &.p-tab-active {
-    color: #3b82f6 !important;
-    font-weight: 700 !important;
-    position: relative;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: #3b82f6;
-      border-top-left-radius: 3px;
-      border-top-right-radius: 3px;
-    }
-  }
-}
-
-:deep(.p-tabpanels) {
+.admin-tabpanels {
   background: transparent !important;
   padding: 1.5rem !important;
   flex: 1;
@@ -637,7 +585,7 @@ onMounted(() => {
   overflow: hidden;
 }
 
-:deep(.p-tabpanel) {
+.admin-tabpanel {
   height: 100%;
   display: flex;
   flex-direction: column;

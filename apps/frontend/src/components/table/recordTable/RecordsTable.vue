@@ -26,10 +26,10 @@
                         <span class="header">#</span>
                     </template>
                     <template #body="{ data, index }">
-                        <button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績">
+                        <Button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績" variant="text" severity="secondary">
                             <span class="rank-text">{{ index < 30 ? index + 1 : '-' }}</span>
                             <i class="pi pi-trash delete-icon"></i>
-                        </button>
+                        </Button>
                         <span v-else class="body plain-rank-text" :class="{ 'top-three': index < 3 }">
                             {{ index < 30 ? index + 1 : '-' }}
                         </span>
@@ -145,6 +145,7 @@ import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import Column from "primevue/column";
 import Select from "primevue/select";
+import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
 import EditingConfirmActions from "./EditingConfirmActions.vue";
 import RecordsMobileList from "./RecordsMobileList.vue";
@@ -361,8 +362,10 @@ const getTitleStyle = (lastUpdate: number) => {
 // 排名欄位特殊效果
 .column-rank {
   .delete-btn {
-    border: none;
-    background: transparent;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
     cursor: pointer;
     transition: all 0.2s ease;
     width: 100%;
@@ -380,7 +383,7 @@ const getTitleStyle = (lastUpdate: number) => {
     }
 
     &:hover {
-      background-color: rgba(239, 68, 68, 0.15);
+      background-color: rgba(239, 68, 68, 0.15) !important;
       border-radius: 6px;
 
       .rank-text {
