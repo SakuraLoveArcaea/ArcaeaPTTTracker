@@ -31,7 +31,8 @@
             <!-- 實驗性分數 PTT 估算 -->
             <div class="settings-row">
                 <span class="settings-label">
-                    <i class="pi pi-chart-line settings-icon"></i>實驗性分數 PTT 估算
+                    <i class="pi pi-chart-line settings-icon"></i>分數 PTT 估算
+                    <span class="beta-badge">Beta</span>
                 </span>
                 <ToggleSwitch
                     v-model="UIStore.useExperimentalPttEstimation"
@@ -137,6 +138,18 @@ watch(() => UIStore.isDarkTheme, (newVal) => {
     color: #3b82f6;
     font-size: 1.05rem;
   }
+}
+
+.beta-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #ef4444; /* 霓虹亮紅色 */
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
 }
 
 .start-point-select {
