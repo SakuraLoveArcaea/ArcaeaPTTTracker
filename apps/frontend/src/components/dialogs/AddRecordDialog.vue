@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal :header="dialogHeader" :style="{ width: '90vw', maxWidth: '400px' }">
+    <Dialog v-model:visible="visible" modal :header="dialogHeader" position="bottom" :style="{ width: '90vw', maxWidth: '400px' }">
         <div class="form-container">
             <div class="field-group">
                 <div class="field-header">

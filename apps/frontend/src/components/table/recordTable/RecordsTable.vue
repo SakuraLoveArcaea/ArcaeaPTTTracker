@@ -131,9 +131,14 @@
         </div>
 
         <!-- 浮動儲存/取消動作列 -->
-        <div v-if="isEditing && editable" class="floating-action-bar">
-            <EditingConfirmActions @save="onActionComplete" @cancel="onActionComplete" />
-        </div>
+        <Transition name="editconfirm">
+            <div v-if="isEditing && editable" class="floating-action-bar">
+                <div class="editing-actions">
+                    <Button label="取消 (Esc)" severity="secondary" outlined @mousedown.prevent="handleCancel" class="flex-1" />
+                    <Button label="儲存 (Enter)" severity="primary" @mousedown.prevent="handleSave" class="flex-1" />
+                </div>
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -147,7 +152,6 @@ import Column from "primevue/column";
 import Select from "primevue/select";
 import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
-import EditingConfirmActions from "./EditingConfirmActions.vue";
 import RecordsMobileList from "./RecordsMobileList.vue";
 
 const props = defineProps({
@@ -197,12 +201,16 @@ const diffColors: Record<Difficulty, string> = {
     'ETR': '#c4a1d1'
 };
 
-// 行內編輯器狀態控制
+// 行內編輯狀態管理
 const isEditing = ref(false);
 const activeCellCount = ref(0);
+const originalRecord = ref<Record | null>(null);
 
-const onCellEditInit = () => { 
+const onCellEditInit = (event: any) => { 
     if (!props.editable) return;
+    const { data } = event;
+    // 儲存原始資料以備取消之用
+    originalRecord.value = { ...data };
     activeCellCount.value++; 
     isEditing.value = true; 
 };
@@ -215,12 +223,10 @@ const closeEditBar = () => {
 const forceCloseBar = () => { 
     activeCellCount.value = 0; 
     isEditing.value = false; 
+    originalRecord.value = null;
 };
 
 const onCellEditCancel = () => closeEditBar();
-const onActionComplete = () => {
-    forceCloseBar();
-};
 
 // 數據校驗與 Emit
 const onCellEditComplete = (event: any) => {
@@ -261,6 +267,32 @@ const onCellEditComplete = (event: any) => {
             if (revert) revert();
         }
     });
+};
+
+const handleSave = () => {
+    const activeEl = document.activeElement as HTMLElement;
+    if (activeEl && activeEl.tagName !== 'BODY') {
+        activeEl.blur(); // 觸發儲存 (會調用 onCellEditComplete)
+    }
+    forceCloseBar();
+};
+
+const handleCancel = () => {
+    // 1. 還原原始資料
+    if (originalRecord.value) {
+        const record = props.records.find(r => r.id === originalRecord.value.id);
+        if (record) {
+            Object.assign(record, originalRecord.value);
+        }
+    }
+    
+    // 2. 讓輸入框失去焦點以退出編輯模式 (這會觸發 onCellEditComplete，但因為資料已還原，所以保存的是舊資料)
+    const activeEl = document.activeElement as HTMLElement;
+    if (activeEl && activeEl.tagName !== 'BODY') {
+        activeEl.blur();
+    }
+    
+    forceCloseBar();
 };
 
 const requestDelete = (record: Record) => {
@@ -456,17 +488,51 @@ const getTitleStyle = (lastUpdate: number) => {
   display: flex;
   gap: 1rem;
   z-index: 1000;
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translate(-50%, 100%);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
+.editing-actions {
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+}
+
+// 浮動操作面板 Transition 動畫 (進入與離開)
+.editconfirm-enter-active, .editconfirm-leave-active {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+.editconfirm-enter-from, .editconfirm-leave-to {
+  transform: translate(-50%, calc(100% + 2.5rem)) scale(0.96) !important;
+  opacity: 0;
+}
+
+.editconfirm-enter-to, .editconfirm-leave-from {
+  transform: translate(-50%, 0) scale(1) !important;
+  opacity: 1;
+}
+
+// 編輯器禁用狀態樣式 (使電腦版編輯 disable 更加明顯)
+.editor {
+  height: 36px;
+  width: 100%;
+
+  &.p-disabled, &:disabled, :deep(.p-disabled), :deep(.p-inputtext:disabled), :deep(input:disabled) {
+    cursor: not-allowed !important;
+    background-color: var(--options-bg) !important;
+    color: var(--text-muted) !important;
+    opacity: 0.75 !important;
+    border-style: dashed !important;
+    border-color: var(--border-color) !important;
+
+    // 針對 Select 和 InputText 內部的 input 處理
+    :deep(.p-select-label), :deep(.p-inputtext), :deep(input) {
+      color: var(--text-muted) !important;
+      cursor: not-allowed !important;
+    }
+    
+    * {
+      cursor: not-allowed !important;
+    }
   }
 }
 
