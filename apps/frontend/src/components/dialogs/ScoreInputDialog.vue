@@ -10,7 +10,9 @@
         <div class="score-input-container">
             <!-- Header 曲目資訊 -->
             <div class="dialog-header-mini">
-                <span class="dialog-title">更新遊玩分數</span>
+                <span class="dialog-title">
+                    <i class="pi pi-keyboard" style="margin-right: 0.35rem; color: #3b82f6; vertical-align: middle;"></i>更新遊玩分數
+                </span>
                 <span class="song-info" v-if="record">
                     {{ record.title }}
                     <span class="diff-tag" :style="{ backgroundColor: diffColors[record.difficulty] }">
