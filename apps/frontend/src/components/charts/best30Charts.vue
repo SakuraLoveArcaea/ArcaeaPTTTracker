@@ -359,15 +359,6 @@ const chartOptions = computed(() => {
                 const exactValue = point.y.toLocaleString('zh-TW', { maximumFractionDigits: 4 });
                 const formattedScore = point.score.toLocaleString('zh-TW');
 
-                // 手機版特別在 Tooltip 內加入定位按鈕
-                const jumpBtnHtml = isMobileView.value ? `
-                    <div style="margin-top: 8px; text-align: right;">
-                        <a href="javascript:void(0)" onclick="window.jumpToRecord('${point.id}')" style="color: #3b82f6; font-size: 11px; font-weight: bold; text-decoration: none; border: 1px solid #3b82f6; padding: 3px 8px; border-radius: 4px; display: inline-block; background: rgba(59,130,246,0.05); cursor: pointer;">
-                            🎯 定位此成績
-                        </a>
-                    </div>
-                ` : '';
-
                 return `
                     <div style="padding: 4px;">
                         <b>#${point.index + 1} - ${point.title}</b><br/>
@@ -377,7 +368,6 @@ const chartOptions = computed(() => {
                         分數：<b>${formattedScore}</b><br/>
                         <span style="color:${this.points[0].color}">\u25CF</span>
                         單曲 PTT：<b>${exactValue}</b>
-                        ${jumpBtnHtml}
                     </div>
                 `;
             },
