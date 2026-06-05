@@ -4,8 +4,8 @@
         <div class="navbar-brand">
             <i class="pi pi-compass brand-icon"></i>
             <h2 class="brand-title">
-                <span class="desktop-title">Arcaea PTT Tracker</span>
-                <span class="mobile-title">Arcaea PTT</span>
+                <span class="desktop-title">ArcaeaPTTTracker</span>
+                <span class="mobile-title">ArcaeaPTTTracker</span>
             </h2>
         </div>
 

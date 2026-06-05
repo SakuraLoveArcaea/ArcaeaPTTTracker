@@ -1,125 +1,143 @@
 <template>
     <Toast />
     <ConfirmDialog />
-    <div class="admin-dashboard-container">
-        <!-- 頂部標題列 -->
-        <header class="admin-header glass-panel">
-            <div class="header-left">
-                <i class="pi pi-shield admin-shield-icon"></i>
-                <h1 class="admin-title">Arcaea成績管理後台</h1>
-            </div>
-            <div class="header-right">
-                <span class="status-indicator">
-                    <span class="pulse-dot"></span>
-                    本機安全控制 (127.0.0.1)
-                </span>
-            </div>
+    <div class="admin-dashboard-wrapper">
+        <!-- 頂部管理導覽列 (Admin NavBar) -->
+        <header class="admin-navbar-wrapper">
+            <nav class="admin-navbar glass-panel">
+                <!-- 左側：標題與 LOGO -->
+                <div class="navbar-brand">
+                    <i class="pi pi-shield brand-icon"></i>
+                    <h2 class="brand-title">
+                        <span class="desktop-title">Arcaea 管理後台</span>
+                        <span class="mobile-title">管理後台</span>
+                    </h2>
+                </div>
+
+                <!-- 中間：選取玩家的數據看板 (玻璃膠囊，同 Home NavBar) -->
+                <div class="stats-container" v-if="selectedUserId && userRecords.length > 0">
+                    <div class="stat-box b30" title="該玩家 Best 30 最佳成績平均潛力值">
+                        <i class="pi pi-star-fill stat-icon"></i>
+                        <span class="label">
+                            <span class="desktop-label">B30 平均：</span>
+                            <span class="mobile-label">B30:</span>
+                        </span>
+                        <span class="value">{{ userB30Avg.toFixed(4) }}</span>
+                    </div>
+                    <div class="stat-box r10" title="該玩家最高單曲前 10 次成績平均值">
+                        <i class="pi pi-bolt stat-icon"></i>
+                        <span class="label">
+                            <span class="desktop-label">最高 R10 平均：</span>
+                            <span class="mobile-label">R10:</span>
+                        </span>
+                        <span class="value">{{ userR10Avg.toFixed(4) }}</span>
+                    </div>
+                    <div class="stat-box max-ptt" title="該玩家預估理論最高潛力值">
+                        <i class="pi pi-chart-line stat-icon"></i>
+                        <span class="label">
+                            <span class="desktop-label">預估最高 PTT：</span>
+                            <span class="mobile-label">最高:</span>
+                        </span>
+                        <span class="value">{{ userMaxPtt.toFixed(4) }}</span>
+                    </div>
+                </div>
+                <div class="stats-container-empty" v-else>
+                    <span class="empty-stats-label">
+                        <i class="pi pi-users"></i>
+                        <span class="desktop-label">請選取一位玩家以同步載入數據看板</span>
+                        <span class="mobile-label">請先選取一位玩家</span>
+                    </span>
+                </div>
+
+                <!-- 右側：本機安全控制狀態 -->
+                <div class="navbar-status">
+                    <span class="status-indicator">
+                        <span class="pulse-dot"></span>
+                        <span class="desktop-label">本機安全控制 (127.0.0.1)</span>
+                        <span class="mobile-label">安全連接</span>
+                    </span>
+                </div>
+            </nav>
         </header>
 
-        <!-- 主面板網格 -->
-        <div class="admin-grid">
-            <!-- 左側區域：玩家選擇器 -->
-            <div class="admin-left-pane">
-                <!-- 玩家選取面板 -->
-                <aside class="sidebar-panel glass-panel">
-                    <h2 class="panel-section-title">玩家選取門戶</h2>
-                    <div class="selector-wrapper">
-                        <Select
-                            v-model="selectedUserId"
-                            :options="userOptions"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="請選擇一位玩家"
-                            showClear
-                            fluid
-                            class="player-select"
-                        />
-                    </div>
-
-                    <!-- 玩家數據快照 (當已選擇玩家時呈現) -->
-                    <transition name="fade">
-                        <div v-if="selectedUserId && userRecords.length > 0" class="player-snapshot">
-                            <div class="divider"></div>
-                            <div class="player-profile">
-                                <div class="avatar-placeholder">
-                                    <i class="pi pi-user"></i>
-                                </div>
-                                <div class="profile-info">
-                                    <span class="profile-name">玩家 ID: {{ selectedUserId.substring(0, 8) }}</span>
-                                    <span class="profile-role">Arcaea 玩家</span>
-                                </div>
-                            </div>
-
-                            <div class="divider"></div>
-                            <h3 class="panel-section-title">數據概覽</h3>
-                            <div class="stats-mini-grid">
-                                <div class="mini-stat-card">
-                                    <span class="label">B30 平均</span>
-                                    <span class="value text-primary">{{ userB30Avg.toFixed(4) }}</span>
-                                </div>
-                                <div class="mini-stat-card">
-                                    <span class="label">最高單曲 PTT</span>
-                                    <span class="value text-success">{{ maxPlayPtt.toFixed(4) }}</span>
-                                </div>
-                                <div class="mini-stat-card">
-                                    <span class="label">已記錄成績</span>
-                                    <span class="value">{{ userRecords.length }} 首</span>
-                                </div>
-                            </div>
-                        </div>
-                    </transition>
-                </aside>
+        <!-- 獨立的玩家選擇與控制列 (Player Selector Bar) -->
+        <div class="selector-banner glass-panel">
+            <div class="selector-left">
+                <i class="pi pi-compass selector-icon"></i>
+                <span class="selector-hint-text">
+                    請選取玩家以同步展示其成績數據、Best 30 圖表及潛力值細節。
+                </span>
             </div>
+            <div class="selector-right">
+                <Select
+                    v-model="selectedUserId"
+                    :options="userOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="請選擇一位玩家"
+                    showClear
+                    fluid
+                    class="player-select"
+                />
+            </div>
+        </div>
 
-            <!-- 右側區域：唯讀成績表格/圖表 Tab 頁面 (若未選取玩家則呈現空狀態) -->
-            <main class="admin-right-pane">
-                <transition name="fade" mode="out-in">
-                    <div v-if="!selectedUserId" class="empty-portal-state glass-panel">
-                        <i class="pi pi-users portal-icon"></i>
-                        <h2>請選擇一位玩家</h2>
-                        <p>請使用左側選單選擇一位玩家以同步載入並展示其成績數據、Best 30 圖表及潛力值細節。</p>
-                    </div>
+        <!-- 主面板區域 (若未選取玩家則呈現 Empty State，否則顯示 Tabs 內容) -->
+        <div class="admin-content-grid">
+            <transition name="fade" mode="out-in">
+                <!-- Empty State -->
+                <div v-if="!selectedUserId" class="empty-portal-state glass-panel">
+                    <i class="pi pi-users portal-icon"></i>
+                    <h2>請選擇一位玩家</h2>
+                    <p>請在上方選單選擇一位玩家。載入後，此處將以圖表和表格形式完整呈現該玩家的 Arcaea 成績分布及 B30 分析。</p>
+                </div>
 
-                    <div v-else class="tabs-card-wrapper glass-panel">
-                        <Tabs v-model:value="UIStore.activeTab" class="admin-tabs">
-                            <TabList class="admin-tablist">
-                                <Tab value="table">
-                                    <i class="pi pi-table tab-icon"></i>成績表格
-                                </Tab>
-                                <Tab value="chart">
-                                    <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
-                                </Tab>
-                            </TabList>
-                            <TabPanels class="admin-tabpanels">
-                                <TabPanel value="table" class="admin-tabpanel">
-                                    <div class="table-card-header">
-                                        <h3 class="card-title">成績清單 (唯讀)</h3>
-                                        <span class="read-only-badge">
-                                            <i class="pi pi-eye"></i> 唯讀模式
-                                        </span>
-                                    </div>
-                                    <div class="table-scroll-container">
-                                        <RecordsTable
-                                            :records="userRecords"
-                                            :isLoading="loading"
-                                            :editable="false"
-                                            :deletable="false"
-                                        />
-                                    </div>
-                                </TabPanel>
-                                <TabPanel value="chart" class="admin-tabpanel">
-                                    <div class="chart-card-header">
-                                        <h3 class="card-title">Best 30 PTT 曲線與分佈</h3>
-                                    </div>
-                                    <div class="chart-scroll-container">
-                                        <Best30Charts :records="userRecords" />
-                                    </div>
-                                </TabPanel>
-                            </TabPanels>
-                        </Tabs>
-                    </div>
-                </transition>
-            </main>
+                <!-- Tabs Card Wrapper (同 Home) -->
+                <div v-else class="tabs-card-wrapper glass-panel">
+                    <Tabs v-model:value="UIStore.activeTab" class="admin-tabs">
+                        <TabList class="admin-tablist">
+                            <Tab value="table">
+                                <i class="pi pi-table tab-icon"></i>成績表格
+                            </Tab>
+                            <Tab value="chart">
+                                <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
+                            </Tab>
+                        </TabList>
+                        <TabPanels class="admin-tabpanels">
+                            <TabPanel value="table" class="admin-tabpanel">
+                                <div class="panel-header-row">
+                                    <h3 class="panel-title">
+                                        <i class="pi pi-list title-icon"></i>
+                                        成績紀錄清單 (唯讀)
+                                    </h3>
+                                    <span class="read-only-badge">
+                                        <i class="pi pi-eye"></i> 唯讀模式
+                                    </span>
+                                </div>
+                                <div class="table-scroll-container">
+                                    <RecordsTable
+                                        :records="userRecords"
+                                        :isLoading="loading"
+                                        :editable="false"
+                                        :deletable="false"
+                                    />
+                                </div>
+                            </TabPanel>
+                            <TabPanel value="chart" class="admin-tabpanel">
+                                <div class="panel-header-row">
+                                    <h3 class="panel-title">
+                                        <i class="pi pi-chart-line title-icon"></i>
+                                        Best 30 PTT 曲線與分佈
+                                    </h3>
+                                </div>
+                                <div class="chart-container">
+                                    <Best30Charts :records="userRecords" />
+                                </div>
+                            </TabPanel>
+                        </TabPanels>
+                    </Tabs>
+                </div>
+            </transition>
         </div>
     </div>
 </template>
@@ -170,10 +188,18 @@ const userB30Avg = computed(() => {
     return sum / 30;
 });
 
-// 4. 計算該玩家單曲最高 PTT
-const maxPlayPtt = computed(() => {
+// 計算該玩家的 R10 平均 (以最高單曲前 10 次成績)
+const userR10Avg = computed(() => {
     if (!userRecords.value || userRecords.value.length === 0) return 0;
-    return Math.max(...userRecords.value.map(r => Number(r.playPtt) || 0));
+    const sorted = [...userRecords.value].sort((a, b) => b.playPtt - a.playPtt);
+    const b10 = sorted.slice(0, 10);
+    const sum = b10.reduce((acc, cur) => acc + (Number(cur.playPtt) || 0), 0);
+    return sum / (b10.length === 10 ? 10 : b10.length);
+});
+
+// 計算該玩家的預估最高 PTT
+const userMaxPtt = computed(() => {
+    return (userB30Avg.value * 30 + userR10Avg.value * 10) / 40;
 });
 
 // 5. 取得特定玩家的成績 (當選擇改變時呼叫)
@@ -210,87 +236,246 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.admin-dashboard-container {
+.admin-dashboard-wrapper {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
   box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    gap: 0.75rem;
+  }
 }
 
-// 頂部標頭樣式
-.admin-header {
+.admin-navbar-wrapper {
+  width: 100%;
+}
+
+// 管理後台導覽列
+.admin-navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 2rem;
-  border-radius: 12px;
+  padding: 0.85rem 1.5rem;
   background: rgba(30, 41, 59, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  flex-shrink: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  width: 100%;
+  box-sizing: border-box;
+}
 
-  .header-left {
+// 品牌 LOGO 區
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  
+  .brand-icon {
+    font-size: 1.35rem;
+    color: #3b82f6;
+  }
+
+  .brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.mobile-title {
+  display: none;
+}
+.desktop-title {
+  display: inline;
+}
+
+// 指標膠囊看板 (與 Home NavBar 一致)
+.stats-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  .stat-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: default;
+
+    .stat-icon {
+      font-size: 0.85rem;
+    }
+
+    .label {
+      color: #94a3b8;
+    }
+
+    .mobile-label {
+      display: none;
+    }
+    .desktop-label {
+      display: inline;
+    }
+
+    .value {
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    &.b30 {
+      .stat-icon { color: #f59e0b; }
+      .value { color: #f59e0b; }
+      &:hover {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+
+    &.r10 {
+      .stat-icon { color: #10b981; }
+      .value { color: #10b981; }
+      &:hover {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+
+    &.max-ptt {
+      .stat-icon { color: #3b82f6; }
+      .value { color: #3b82f6; }
+      &:hover {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// 空統計數據占位膠囊
+.stats-container-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .empty-stats-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border-color);
+    padding: 0.45rem 1.2rem;
+    border-radius: 9999px;
+
+    i {
+      font-size: 0.9rem;
+    }
+
+    .mobile-label {
+      display: none;
+    }
+    .desktop-label {
+      display: inline;
+    }
+  }
+}
+
+// 右側安全連接指示
+.navbar-status {
+  display: flex;
+  align-items: center;
+
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+
+    .mobile-label {
+      display: none;
+    }
+    .desktop-label {
+      display: inline;
+    }
+  }
+
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 1.6s infinite;
+  }
+}
+
+// 獨立的玩家選擇與控制條
+.selector-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+  box-sizing: border-box;
+
+  .selector-left {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-width: 0;
 
-    .admin-shield-icon {
-      font-size: 1.8rem;
+    .selector-icon {
       color: #3b82f6;
+      font-size: 1.1rem;
+      flex-shrink: 0;
     }
 
-    .admin-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin: 0;
-      background: linear-gradient(135deg, #ffffff, #94a3b8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-  }
-
-  .header-right {
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
+    .selector-hint-text {
       font-size: 0.85rem;
-      font-weight: 600;
-      color: #10b981;
-      background: rgba(16, 185, 129, 0.1);
-      padding: 0.35rem 0.75rem;
-      border-radius: 9999px;
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--text-muted);
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
 
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      background-color: #10b981;
-      border-radius: 50%;
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      animation: pulse 1.6s infinite;
-    }
+  .selector-right {
+    flex-shrink: 0;
+    width: 240px;
   }
 }
 
-// 預設垂直排版 (手機與平板螢幕)
-.admin-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.admin-left-pane {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.admin-right-pane {
-  display: flex;
-  flex-direction: column;
+.admin-content-grid {
   width: 100%;
 }
 
@@ -299,271 +484,49 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   overflow: hidden;
-  padding: 0; /* flush tabs to card borders */
+  padding: 0;
 }
 
-.table-scroll-container, .chart-scroll-container {
-  width: 100%;
-}
-
-// 桌上型電腦雙欄排版 (螢幕寬度大於 1024px)
-@media (min-width: 1025px) {
-  .admin-dashboard-container {
-    height: calc(100vh - 3rem); /* 減去全域 #app 的 1.5rem * 2 上下外距，鎖定視窗高度 */
-    overflow: hidden;
-  }
-
-  .admin-grid {
-    grid-template-columns: 420px 1fr;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    height: 100%;
-    align-items: stretch;
-  }
-
-  .admin-left-pane {
-    height: 100%;
-    overflow-y: auto;
-    min-height: 0;
-    padding-right: 0.5rem; /* 預留自定義滾動條寬度 */
-
-    // 自定義滾動條 (符合 Chrome / Edge / Safari / Firefox 標準規格)
-    --scrollbar-thumb: var(--border-color);
-    --scrollbar-track: transparent;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-    scrollbar-width: thin;
-
-    @supports not (scrollbar-color: auto) {
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-      &::-webkit-scrollbar-thumb {
-        background: var(--scrollbar-thumb);
-        border-radius: 3px;
-      }
-      &::-webkit-scrollbar-track {
-        background: var(--scrollbar-track);
-      }
-    }
-  }
-
-  .admin-right-pane {
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .tabs-card-wrapper {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    height: 100%;
-  }
-
-  .table-scroll-container, .chart-scroll-container {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-
-    // 自定義滾動條 (符合 Chrome / Edge / Safari / Firefox 標準規格)
-    --scrollbar-thumb: var(--border-color);
-    --scrollbar-track: transparent;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-    scrollbar-width: thin;
-
-    @supports not (scrollbar-color: auto) {
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-      &::-webkit-scrollbar-thumb {
-        background: var(--scrollbar-thumb);
-        border-radius: 3px;
-      }
-      &::-webkit-scrollbar-track {
-        background: var(--scrollbar-track);
-      }
-    }
-  }
-
-  .empty-portal-state {
-    height: 100%;
-    box-sizing: border-box;
-    justify-content: center;
-  }
-}
-
-// 側邊欄與區塊樣式
-.sidebar-panel {
-  padding: 1.5rem;
-  background: rgba(30, 41, 59, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-
-  .panel-section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #94a3b8;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .selector-wrapper {
-    margin-bottom: 1.5rem;
-  }
-}
-
-// 玩家數據快照
-.player-snapshot {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-
-  .divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.08);
-    width: 100%;
-  }
-
-  .player-profile {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-
-    .avatar-placeholder {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(163, 85, 171, 0.2));
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #3b82f6;
-      font-size: 1.25rem;
-    }
-
-    .profile-info {
-      display: flex;
-      flex-direction: column;
-      
-      .profile-name {
-        font-weight: 700;
-        color: #f8fafc;
-        font-size: 0.95rem;
-      }
-
-      .profile-role {
-        font-size: 0.75rem;
-        color: #64748b;
-      }
-    }
-  }
-
-  .stats-mini-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .mini-stat-card {
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .label {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-
-    .value {
-      font-weight: 700;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 1rem;
-
-      &.text-primary { color: #3b82f6; }
-      &.text-success { color: #10b981; }
-    }
-  }
-}
-
-// 未選擇玩家的引導狀態
-.empty-portal-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 5rem 2rem;
-  background: rgba(30, 41, 59, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-
-  .portal-icon {
-    font-size: 4rem;
-    color: #475569;
-    margin-bottom: 1.5rem;
-    animation: float 4s ease-in-out infinite;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    color: #f8fafc;
-  }
-
-  p {
-    font-size: 0.95rem;
-    color: #64748b;
-    max-width: 450px;
-    line-height: 1.6;
-    margin: 0;
-  }
-}
-
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-top: 0;
-  margin-bottom: 1.25rem;
-}
-
-.chart-card-header, .table-card-header {
+.panel-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.25rem;
   flex-shrink: 0;
+}
 
-  .card-title {
-    margin-bottom: 0;
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-top: 0;
+  margin-bottom: 0;
+
+  .title-icon {
+    color: #3b82f6;
+    font-size: 1.1rem;
   }
 }
 
-.table-card-header {
-  .read-only-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #94a3b8;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.25rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
+.read-only-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table-scroll-container, .chart-container {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-tabs {
@@ -582,22 +545,48 @@ onMounted(() => {
 .admin-tabpanels {
   background: transparent !important;
   padding: 1.5rem !important;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem !important;
+  }
 }
 
-.admin-tabpanel {
-  height: 100%;
+// 未選擇玩家的引導狀態
+.empty-portal-state {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem;
+  background: rgba(30, 41, 59, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+
+  .portal-icon {
+    font-size: 4rem;
+    color: #475569;
+    margin-bottom: 1.5rem;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: #f8fafc;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: 480px;
+    line-height: 1.6;
+    margin: 0;
+  }
 }
 
-// 動畫
+// 動畫定義
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
@@ -615,62 +604,195 @@ onMounted(() => {
   50% { transform: translateY(-10px); }
 }
 
-// transition 動畫效果
 .fade-enter-active, .fade-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s ease;
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
 }
 
+// 響應式佈局重新設計 (手機版與平板)
+@media (max-width: 1024px) {
+  .admin-navbar {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .navbar-brand {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-content: flex-start;
+  }
+
+  .navbar-status {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-content: flex-end;
+  }
+
+  .desktop-title {
+    display: none;
+  }
+  .mobile-title {
+    display: inline;
+  }
+
+  // 指標看板手機版精簡化 (同 Home NavBar)
+  .stats-container {
+    grid-column: span 2 !important;
+    grid-row: 2 !important;
+    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    gap: 0.2rem !important;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.45rem;
+    margin-top: 0.1rem;
+
+    .stat-box {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      font-size: 0.72rem !important;
+      gap: 0.15rem !important;
+      transform: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+
+      .stat-icon {
+        font-size: 0.75rem !important;
+      }
+
+      .desktop-label {
+        display: none;
+      }
+      .mobile-label {
+        display: inline;
+        font-size: 0.68rem !important;
+        margin-right: 0.05rem;
+      }
+
+      .value {
+        font-size: 0.8rem !important;
+      }
+    }
+  }
+
+  .stats-container-empty {
+    grid-column: span 2 !important;
+    grid-row: 2 !important;
+    width: 100%;
+    margin-top: 0.1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.45rem;
+
+    .empty-stats-label {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      font-size: 0.72rem !important;
+      gap: 0.25rem !important;
+
+      .desktop-label {
+        display: none;
+      }
+      .mobile-label {
+        display: inline;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-status .status-indicator {
+    padding: 0.2rem;
+    background: transparent !important;
+    border: none !important;
+
+    .desktop-label, .mobile-label {
+      display: none !important;
+    }
+  }
+
+  .selector-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+
+    .selector-left {
+      .selector-hint-text {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+      }
+    }
+
+    .selector-right {
+      width: 100%;
+    }
+  }
+
+  .empty-portal-state {
+    padding: 4rem 1rem;
+    .portal-icon {
+      font-size: 3rem;
+    }
+    h2 {
+      font-size: 1.2rem;
+    }
+  }
+}
+
 // 日間模式適應樣式 (Day/Light Mode)
 :root:not(.p-dark) {
-  .admin-header {
+  .admin-navbar {
     background: rgba(255, 255, 255, 0.7);
     border-color: rgba(15, 23, 42, 0.05);
-    .admin-title {
+    .brand-title {
       background: linear-gradient(135deg, #0f172a, #475569);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
   }
 
-  .sidebar-panel, .tabs-card-wrapper {
-    background: rgba(255, 255, 255, 0.7);
+  .stats-container .stat-box {
+    background: rgba(255, 255, 255, 0.9);
     border-color: rgba(15, 23, 42, 0.05);
 
-    .panel-section-title {
+    .label {
       color: #64748b;
     }
   }
 
-  .player-snapshot {
-    .divider {
-      background: rgba(15, 23, 42, 0.08);
-    }
-    .player-profile .profile-info {
-      .profile-name {
-        color: #0f172a;
-      }
-    }
-    .mini-stat-card {
-      background: rgba(15, 23, 42, 0.04);
-      border-color: rgba(15, 23, 42, 0.05);
-      .label {
-        color: #64748b;
-      }
+  @media (max-width: 1024px) {
+    .stats-container .stat-box {
+      background: transparent !important;
+      border: none !important;
     }
   }
 
-  .empty-portal-state {
+  .selector-banner {
+    background: rgba(59, 130, 246, 0.05);
+    .selector-hint-text {
+      color: #475569;
+    }
+  }
+
+  .tabs-card-wrapper, .empty-portal-state {
     background: rgba(255, 255, 255, 0.7);
     border-color: rgba(15, 23, 42, 0.05);
-    h2 {
-      color: #0f172a;
-    }
   }
 
-  .card-title {
+  .panel-title, .empty-portal-state h2 {
     color: #0f172a;
   }
 }
