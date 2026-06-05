@@ -34,8 +34,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import Button from 'primevue/button';
-import ConfirmActionDialog from '@/components/dialogs/ConfirmActionDialog.vue';
-import MergeDataDialog from '@/components/dialogs/MergeDataDialog.vue';
 import ImportRecordDialog from '@/components/dialogs/ImportRecordDialog.vue';
 import {useUIStore} from "@/stores/uiStore";
 import {storeToRefs} from "pinia";

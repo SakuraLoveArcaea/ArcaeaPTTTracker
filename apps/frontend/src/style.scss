@@ -270,3 +270,18 @@ body {
   }
 }
 
+// 6. 手機版 Toast 響應式佈局覆寫 (防止寬度超出螢幕)
+@media (max-width: 768px) {
+  .p-toast {
+    width: calc(100vw - 2rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    top: 1rem !important;
+  }
+  
+  .p-toast-message {
+    width: 100% !important;
+  }
+}
+
+

@@ -39,88 +39,124 @@
 
         <!-- 右側：使用者選單 -->
         <div class="navbar-user">
-            <!-- 主題切換按鈕 -->
-            <Button
-                :icon="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'"
-                outlined
-                severity="secondary"
-                size="small"
-                @click="UIStore.toggleTheme"
-                class="theme-toggle-btn"
-                :title="isDarkTheme ? '切換至日間模式' : '切換至夜間模式'"
-            />
-            <div v-if="currentUser && !forceLogout" class="user-profile">
+            <div class="user-profile" @click="toggleUserMenu" aria-haspopup="true" aria-controls="user_menu" title="點擊開啟選單">
                 <Avatar
-                    v-if="currentUser.photoURL"
+                    v-if="currentUser && !forceLogout && currentUser.photoURL"
                     :image="currentUser.photoURL"
                     shape="circle"
-                    class="avatar"
+                    class="avatar clickable-avatar"
                 />
                 <Avatar
                     v-else
                     icon="pi pi-user"
                     shape="circle"
-                    class="avatar-placeholder"
+                    class="avatar-placeholder clickable-avatar"
                 />
-                <span class="username">{{ currentUser.displayName }}</span>
-                <Button label="登出" severity="danger" size="small" outlined @click="requestLogout" class="logout-btn"/>
+                <span class="username" v-if="currentUser && !forceLogout">{{ currentUser.displayName }}</span>
+                <span class="username" v-else>訪客</span>
+                <i class="pi pi-angle-down menu-arrow"></i>
             </div>
-            <div v-else class="user-login">
-                <Button label="Google 登入" icon="pi pi-google" severity="success" size="small" @click="authStore.signIn(toast)" class="login-btn" />
-            </div>
+            <Menu ref="userMenu" id="user_menu" :model="userMenuItems" :popup="true" />
         </div>
 
-        <!-- 登出確認彈窗 -->
-        <ConfirmActionDialog 
-            v-model:visible="showLogoutDialog" 
-            header="確認登出" 
-            message="您確定要登出嗎？登出後將切換為本機暫存模式，不會顯示您的雲端成績。"
-            severity="danger"
-            acceptLabel="確認登出"
-            cancelLabel="取消"
-            @accept="executeLogout" 
-            @cancel="showLogoutDialog = false"
-        />
+        <!-- 個人設定對話框 -->
+        <UserSettingsDialog v-model:visible="showSettingsDialog" />
     </nav>
 </template>
 
 <script setup lang="ts">
 import { Button } from "primevue";
 import Avatar from "primevue/avatar";
+import Menu from "primevue/menu";
 import { useToast } from "primevue/usetoast";
+import { useConfirm } from "primevue/useconfirm";
 import { useAuthStore } from "@/stores/authStore";
 import { useRecordsStore } from "@/stores/recordsStore";
 import { storeToRefs } from "pinia";
-import ConfirmActionDialog from '@/components/dialogs/ConfirmActionDialog.vue';
-import { ref } from "vue";
+import UserSettingsDialog from '@/components/dialogs/UserSettingsDialog.vue';
+import { ref, computed } from "vue";
 import { useUIStore } from "@/stores/uiStore";
 
-const toast = useToast();
-const authStore = useAuthStore();
-const recordsStore = useRecordsStore();
-const UIStore = useUIStore();
-
-const { currentUser } = storeToRefs(authStore);
-const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
-const { isDarkTheme } = storeToRefs(UIStore);
-
-const showLogoutDialog = ref(false);
-
-defineProps({
+const props = defineProps({
     'forceLogout': {
         type: Boolean,
         default: false
     }
 });
 
+const toast = useToast();
+const confirm = useConfirm();
+const authStore = useAuthStore();
+const recordsStore = useRecordsStore();
+const UIStore = useUIStore();
+
+const { currentUser } = storeToRefs(authStore);
+const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
+
+const showSettingsDialog = ref(false);
+const userMenu = ref();
+
+// 響應式使用者選單項目
+const userMenuItems = computed(() => {
+    const items = [
+        {
+            label: '個人設定',
+            icon: 'pi pi-cog',
+            command: () => {
+                showSettingsDialog.value = true;
+            }
+        }
+    ];
+
+    if (currentUser.value && !props.forceLogout) {
+        items.push(
+            { separator: true } as any,
+            {
+                label: '登出',
+                icon: 'pi pi-sign-out',
+                class: 'logout-menu-item',
+                command: () => {
+                    requestLogout();
+                }
+            }
+        );
+    } else {
+        items.push(
+            { separator: true } as any,
+            {
+                label: 'Google 登入',
+                icon: 'pi pi-google',
+                class: 'login-menu-item',
+                command: () => {
+                    authStore.signIn(toast);
+                }
+            }
+        );
+    }
+
+    return items;
+});
+
+const toggleUserMenu = (event: Event) => {
+    userMenu.value.toggle(event);
+};
+
 const requestLogout = () => {
-    showLogoutDialog.value = true;
+    confirm.require({
+        message: '您確定要登出嗎？登出後將切換為本機暫存模式，不會顯示您的雲端成績。',
+        header: '確認登出',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: { label: '取消', outlined: true, severity: 'secondary' },
+        acceptProps: { label: '確認登出', severity: 'danger' },
+        accept: () => {
+            executeLogout();
+        }
+    });
 };
 
 const executeLogout = async () => {
     await authStore.signOut(toast);
     recordsStore.initLoad();
-    showLogoutDialog.value = false;
 };
 </script>
 
@@ -249,59 +285,47 @@ const executeLogout = async () => {
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-
-  .theme-toggle-btn {
-    border-radius: 50% !important;
-    width: 32px !important;
-    height: 32px !important;
-    padding: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0;
-  }
 
   .user-profile {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.35rem 0.65rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.25s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 
-    .avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    &:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
-    .avatar-placeholder {
-      width: 32px;
-      height: 32px;
+    .avatar, .avatar-placeholder {
+      width: 28px !important;
+      height: 28px !important;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.05);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #94a3b8;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.8rem;
+      flex-shrink: 0;
     }
 
     .username {
       font-size: 0.85rem;
       font-weight: 600;
       color: #cbd5e1;
+      max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .logout-btn {
+    .menu-arrow {
       font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
+      color: #94a3b8;
     }
-  }
-
-  .login-btn {
-    border-radius: 6px;
   }
 }
 
@@ -387,8 +411,14 @@ const executeLogout = async () => {
   .navbar {
     padding: 0.5rem 0.75rem;
   }
-  .navbar-user .user-profile .username {
-    display: none; // 手機螢幕更小時，隱藏使用者暱稱以防擠壓
+  .navbar-user .user-profile {
+    padding: 0.2rem;
+    background: transparent !important;
+    border: none !important;
+
+    .username, .menu-arrow {
+      display: none !important;
+    }
   }
 }
 
@@ -421,8 +451,48 @@ const executeLogout = async () => {
     }
   }
 
-  .navbar-user .user-profile .username {
-    color: #334155;
+  .navbar-user .user-profile {
+    background: rgba(15, 23, 42, 0.03);
+    border-color: rgba(15, 23, 42, 0.05);
+
+    &:hover {
+      background: rgba(15, 23, 42, 0.06);
+      border-color: rgba(15, 23, 42, 0.08);
+    }
+
+    .username {
+      color: #334155;
+    }
+  }
+}
+
+// 個人設定對話框樣式
+.settings-container-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.settings-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+
+  .settings-icon {
+    color: #3b82f6;
+    font-size: 1.05rem;
   }
 }
 </style>

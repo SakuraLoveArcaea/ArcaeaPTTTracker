@@ -315,6 +315,7 @@ const close = () => {
 const save = () => {
     emit('save', {
         ...form.value,
+        id: UIStore.editingRecord ? UIStore.editingRecord.id : null,
         autoUpdate: !!selectedSongData.value
     });
 };

@@ -174,6 +174,26 @@ export const useRecordsStore = defineStore('records', () => {
         const difficulty = form.difficulty;
         const autoUpdate = form.autoUpdate || false; // 從表單獲取 AutoUpdate 屬性
 
+        // 1. 如果傳入了 id，表示是精確編輯已存在的紀錄 (與電腦版的 ID 更新邏輯一致)
+        if (form.id) {
+            const oldRecord = records.value.find(r => r.id === form.id);
+            if (oldRecord) {
+                const updatedRecord: Record = {
+                    ...oldRecord,
+                    title: title,
+                    difficulty: difficulty,
+                    constant: parsedConstant,
+                    score: parsedScore,
+                    playPtt: calculatePlayPtt(parsedConstant, parsedScore),
+                    autoUpdate
+                } as Record;
+                
+                await updateRecord(oldRecord, updatedRecord, { contextMsg: '修改成功' });
+                return;
+            }
+        }
+
+        // 2. 否則為新增狀態，先用曲名與難度判定是否已存在該成績組合
         const existingRecordIndex = records.value.findIndex(r => r.title === title && r.difficulty === difficulty);
         const newPlayPtt = calculatePlayPtt(parsedConstant, parsedScore);
 
@@ -197,8 +217,8 @@ export const useRecordsStore = defineStore('records', () => {
                 constant: parsedConstant,
                 score: parsedScore,
                 playPtt: newPlayPtt,
-                lastUpdate: Date.now(),
-                autoUpdate // 寫入是否自動更新屬性
+                autoUpdate: autoUpdate, // 寫入是否自動更新屬性
+                lastUpdate: Date.now()
             } as Record;
             await addRecord(recordToSave);
         }

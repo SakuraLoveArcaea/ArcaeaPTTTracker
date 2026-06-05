@@ -34,17 +34,7 @@
             />
         </div>
 
-        <!-- 刪除確認對話框 -->
-        <ConfirmActionDialog
-            v-model:visible="isDeleteDialogOpen"
-            header="刪除確認"
-            :message="`您確定要刪除「${recordToDelete?.title}」的成績嗎？刪除後無法復原。`"
-            severity="danger"
-            acceptLabel="確認刪除"
-            cancelLabel="取消"
-            @accept="deleteRecord"
-            @cancel="recordToDelete = null"
-        />
+
 
         <!-- 本地與雲端資料合併對話框 -->
         <MergeDataDialog
@@ -62,11 +52,11 @@ import { storeToRefs } from "pinia";
 
 import RecordsTable from "./recordTable/RecordsTable.vue";
 import RecordsActions from "./recordActions/RecordsActions.vue";
-import ConfirmActionDialog from '@/components/dialogs/ConfirmActionDialog.vue';
 import MergeDataDialog from '@/components/dialogs/MergeDataDialog.vue';
 
 import { useAuthStore } from "@/stores/authStore";
 import { useRecordsStore } from "@/stores/recordsStore";
+import { useConfirm } from "primevue/useconfirm";
 import { addRecordDataByRecord, deleteRecordDataByRecord } from "@/utils/firestoreClient";
 import { calculatePlayPtt } from "@/utils/arcaeaRule";
 import { type Record, Difficulty } from "@/utils/record";
@@ -75,12 +65,26 @@ import { useUIStore } from "@/stores/uiStore";
 const authStore = useAuthStore();
 const recordsStore = useRecordsStore();
 const UIStore = useUIStore();
+const confirm = useConfirm();
 
 const { currentUser } = storeToRefs(authStore);
 const { records, isLoading } = storeToRefs(recordsStore);
-const { recordToDelete } = storeToRefs(recordsStore)
-const { isDeleteDialogOpen } = storeToRefs(UIStore)
-const { deleteRecord, onExportRecordsToJson, onAddRecordForm, onUpdateFromTable, onDelete } = recordsStore
+const { recordToDelete } = storeToRefs(recordsStore);
+const { deleteRecord, onExportRecordsToJson, onAddRecordForm, onUpdateFromTable } = recordsStore;
+
+const onDelete = (record: Record) => {
+    confirm.require({
+        message: `您確定要刪除「${record.title}」的成績嗎？刪除後無法復原。`,
+        header: '刪除確認',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: { label: '取消', outlined: true, severity: 'secondary' },
+        acceptProps: { label: '確認刪除', severity: 'danger' },
+        accept: () => {
+            recordsStore.recordToDelete = record;
+            deleteRecord();
+        }
+    });
+};
 
 const props = defineProps({
     'testing': { type: Boolean, default: false },

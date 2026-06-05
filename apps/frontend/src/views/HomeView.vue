@@ -1,5 +1,6 @@
 <template>
     <Toast />
+    <ConfirmDialog />
     <div class="home-dashboard-wrapper">
         <!-- 頂部導覽列 -->
         <header class="navbar-wrapper">
@@ -80,6 +81,7 @@ import { storeToRefs } from "pinia";
 import { onMounted, onUnmounted, ref, watch, nextTick } from "vue";
 import { User } from "firebase/auth";
 import Toast from 'primevue/toast';
+import ConfirmDialog from 'primevue/confirmdialog';
 import { useUIStore } from "@/stores/uiStore";
 import Best30Charts from "@/components/charts/best30Charts.vue";
 

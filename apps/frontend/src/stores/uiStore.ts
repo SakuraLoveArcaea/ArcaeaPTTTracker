@@ -5,11 +5,8 @@ import { Record } from "@/utils/record";
 
 export const useUIStore = defineStore("UI", () => {
     // dialog state
-    const isDeleteDialogOpen = ref(false);
     const isAddDialogOpen = ref(false);
     const isImportDialogOpen = ref(false);
-    const isExportDialogOpen = ref(false);
-    const isMergeDialogOpen = ref(false);
     const editingRecord = ref<Record | null>(null);
     
     // 行動版圖表跳轉與定位狀態
@@ -20,21 +17,22 @@ export const useUIStore = defineStore("UI", () => {
     // 主題狀態 (Day / Night Theme)
     const isDarkTheme = ref(true); // 預設為暗色系電競風
 
-    // 安全延遲獲取 Toast 實例，防止 Store 在 Vue context 未就緒前加載時崩潰
-    let toastInstance: any = null;
-    const getToast = () => {
-        if (!toastInstance) {
-            try {
-                toastInstance = useToast();
-            } catch (error) {
-                // 忽略在靜態加載或早期生命週期階段的 inject 錯誤
-            }
-        }
-        return toastInstance;
-    };
+    // 安全地在 Store 初始化時獲取 Toast 實例 (Pinia Store 通常在元件的 setup 階段被第一次實例化)
+    let toast: any = null;
+    try {
+        toast = useToast();
+    } catch (error) {
+        // 捕捉在非 Vue 元件 context 載入時的 inject 錯誤
+    }
 
     const showToast = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string, life = 3000) => {
-        const toast = getToast();
+        if (!toast) {
+            try {
+                toast = useToast();
+            } catch (error) {
+                // 忽略錯誤
+            }
+        }
         if (toast) {
             toast.add({ severity, summary, detail, life });
         } else {
@@ -73,11 +71,8 @@ export const useUIStore = defineStore("UI", () => {
 
     return {
         showToast,
-        isDeleteDialogOpen,
         isAddDialogOpen,
         isImportDialogOpen,
-        isExportDialogOpen,
-        isMergeDialogOpen,
         editingRecord,
         activeTab,
         expandedRecordId,

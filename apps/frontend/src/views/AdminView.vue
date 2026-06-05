@@ -1,4 +1,6 @@
 <template>
+    <Toast />
+    <ConfirmDialog />
     <div class="admin-dashboard-container">
         <!-- 頂部標題列 -->
         <header class="admin-header glass-panel">
@@ -124,6 +126,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
+import ConfirmDialog from 'primevue/confirmdialog';
+import Toast from 'primevue/toast';
 import Select from 'primevue/select';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
