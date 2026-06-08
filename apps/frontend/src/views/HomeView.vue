@@ -47,7 +47,7 @@
     </div>
     
     <!-- 新增成績 Dialog -->
-    <AddRecordDialog v-model:visible="isAddDialogOpen" @save="handleSave"/>
+    <AddRecordDialog ref="addRecordDialogRef" v-model:visible="isAddDialogOpen" @save="handleSave"/>
     
     <!-- 專屬手機分數鍵盤 Dialog -->
     <ScoreInputDialog @save="handleScoreSave" />
@@ -95,6 +95,7 @@ const UIStore = useUIStore();
 const { isAddDialogOpen } = storeToRefs(UIStore)
 const { onAddRecordForm } = recordsStore
 
+const addRecordDialogRef = ref<any>(null);
 const isMac = ref(navigator.userAgent.toUpperCase().indexOf('MAC') >= 0);
 
 // 當對話框關閉時，鎖定目前的滾動位置，防止 PrimeVue 焦點管理引發的滾動跳動
@@ -134,6 +135,12 @@ const handleSave = (form: any) => {
 }
 
 const handleScoreSave = (payload: { id: string, score: number }) => {
+    if (payload.id === 'temp-add-record') {
+        if (addRecordDialogRef.value) {
+            addRecordDialogRef.value.setScore(payload.score);
+        }
+        return;
+    }
     const oldRecord = recordsStore.records.find(r => r.id === payload.id);
     if (oldRecord) {
         recordsStore.onAddRecordForm({

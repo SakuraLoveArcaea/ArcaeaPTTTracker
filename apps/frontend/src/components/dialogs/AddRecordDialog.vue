@@ -57,9 +57,25 @@
                 />
             </div>
 
-            <div class="field-group-spaced" v-if="!(UIStore.useExperimentalScoreInput && UIStore.editingRecord)">
+            <div class="field-group-spaced">
                 <label class="label-text">分數 (Score)</label>
+                
+                <!-- 快捷鍵盤分數輸入觸發器 -->
+                <div 
+                    v-if="UIStore.useExperimentalScoreInput" 
+                    class="custom-score-display-trigger" 
+                    @click="openKeyboard"
+                >
+                    <span v-if="form.score !== null" class="score-display-val font-monospace">
+                        {{ formatScore(form.score) }}
+                    </span>
+                    <span v-else class="score-placeholder">點擊使用快捷鍵盤輸入分數</span>
+                    <i class="pi pi-calculator keyboard-trigger-icon"></i>
+                </div>
+
+                <!-- 原生輸入框 -->
                 <InputNumber
+                    v-else
                     ref="scoreInput"
                     v-model="form.score"
                     :minFractionDigits="0"
@@ -188,7 +204,7 @@ const performSearch = async () => {
         const { results } = await searchClient.search({
             requests: [
                 {
-                    indexName: 'arcaea_constants_ver_6_14',
+                    indexName: 'arcaea_constants_ver_6_14_11',
                     query: searchQuery.value,
                     hitsPerPage: 8,
                 },
@@ -326,6 +342,32 @@ const onDifficultyChange = () => {
         }
     }
 };
+
+const formatScore = (score: number | null) => {
+    if (score === null) return '';
+    const rawScore = score <= 1005 ? Math.round(score * 10000) : Math.round(score);
+    return rawScore.toLocaleString();
+};
+
+const openKeyboard = () => {
+    UIStore.scoreInputRecord = {
+        id: 'temp-add-record',
+        title: form.value.title || '自定義歌曲',
+        difficulty: form.value.difficulty,
+        constant: form.value.constant,
+        score: form.value.score || 0,
+        playPtt: 0
+    } as any;
+    UIStore.isScoreInputDialogOpen = true;
+};
+
+const setScore = (score: number) => {
+    form.value.score = score;
+};
+
+defineExpose({
+    setScore
+});
 
 const close = () => {
     visible.value = false;
@@ -475,5 +517,46 @@ const save = () => {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+}
+
+/* 快捷分數輸入顯示器 */
+.custom-score-display-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.55rem 0.75rem;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    min-height: 2.5rem;
+    box-sizing: border-box;
+
+    &:hover {
+        border-color: var(--primary);
+    }
+
+    .score-display-val {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: 0.05em;
+    }
+
+    .score-placeholder {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .keyboard-trigger-icon {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        transition: color 0.2s;
+    }
+
+    &:hover .keyboard-trigger-icon {
+        color: var(--primary);
+    }
 }
 </style>
