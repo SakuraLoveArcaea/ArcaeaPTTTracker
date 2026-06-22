@@ -2,10 +2,11 @@
     <Dialog 
         v-model:visible="UIStore.isScoreInputDialogOpen" 
         modal 
-        :position="isMobile ? 'bottom' : undefined" 
+        :dismissableMask="true"
+        :position="isMobile ? 'bottom' : 'center'" 
         :style="dialogStyle"
         :showHeader="false"
-        :maskClass="isMobile ? '' : 'desktop-score-input-mask'"
+        @hide="onCancel"
         class="score-input-dialog"
     >
         <div class="score-input-container">
@@ -128,37 +129,11 @@ const isMobile = useMediaQuery('(max-width: 768px)');
 
 const record = computed(() => UIStore.scoreInputRecord);
 
-// 計算電腦版定位與樣式
+// 計算電腦版樣式
 const dialogStyle = computed(() => {
     if (isMobile.value) {
         return { width: '100vw', maxWidth: '420px', margin: '0' };
     }
-    
-    if (UIStore.scoreInputPosition) {
-        const padding = 10;
-        let left = UIStore.scoreInputPosition.x;
-        // 確保不會超出螢幕右側
-        if (left + 360 > window.innerWidth) {
-            left = window.innerWidth - 360 - padding;
-        }
-        
-        let top = UIStore.scoreInputPosition.y + 8;
-        // 確保不會超出螢幕底部 (Dialog 高度約為 420px)
-        if (top + 450 > window.innerHeight) {
-            // 改顯示在儲存格上方 (40px 為儲存格預估高度)
-            top = Math.max(padding, UIStore.scoreInputPosition.y - 450 - 40);
-        }
-        
-        return {
-            position: 'absolute',
-            left: `${left}px`,
-            top: `${top}px`,
-            width: '340px',
-            margin: '0',
-            transform: 'none'
-        };
-    }
-    
     return { width: '340px', margin: '0' };
 });
 // 即時計算單曲 Play PTT
@@ -544,11 +519,5 @@ const onConfirm = () => {
 .footer-btn {
     flex: 1;
     font-weight: 700 !important;
-}
-
-:deep(.desktop-score-input-mask) {
-  background-color: transparent !important;
-  display: block !important;
-  pointer-events: auto !important;
 }
 </style>

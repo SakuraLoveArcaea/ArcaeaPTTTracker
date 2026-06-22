@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal :header="dialogHeader" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '400px', maxHeight: '90vh' }">
+    <Dialog v-model:visible="visible" modal :dismissableMask="true" :header="dialogHeader" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '400px', maxHeight: '90vh' }">
         <div class="form-container">
             <div class="field-group">
                 <div class="field-header">

@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal header="匯入 JSON 紀錄" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '600px', maxHeight: '90vh' }">
+    <Dialog v-model:visible="visible" modal :dismissableMask="true" header="匯入 JSON 紀錄" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '600px', maxHeight: '90vh' }">
         <div class="import-dialog-content">
             <div class="import-instructions">
                 <p class="instruction-title">請將您的成績資料以 <b>JSON 陣列</b> 的格式貼在下方。</p>

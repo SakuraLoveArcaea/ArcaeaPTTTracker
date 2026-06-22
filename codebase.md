@@ -1554,7 +1554,7 @@ const UIStore = useUIStore();
 
 ```vue
 <template>
-    <Dialog v-model:visible="visible" modal :header="dialogHeader" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '400px', maxHeight: '90vh' }">
+    <Dialog v-model:visible="visible" modal :dismissableMask="true" :header="dialogHeader" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '400px', maxHeight: '90vh' }">
         <div class="form-container">
             <div class="field-group">
                 <div class="field-header">
@@ -2121,7 +2121,7 @@ const save = () => {
 
 ```vue
 <template>
-    <Dialog v-model:visible="visible" modal header="匯入 JSON 紀錄" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '600px', maxHeight: '90vh' }">
+    <Dialog v-model:visible="visible" modal :dismissableMask="true" header="匯入 JSON 紀錄" :position="isMobile ? 'top' : 'center'" :style="{ width: '90vw', maxWidth: '600px', maxHeight: '90vh' }">
         <div class="import-dialog-content">
             <div class="import-instructions">
                 <p class="instruction-title">請將您的成績資料以 <b>JSON 陣列</b> 的格式貼在下方。</p>
@@ -2448,10 +2448,11 @@ const onDiscard = () => {
     <Dialog 
         v-model:visible="UIStore.isScoreInputDialogOpen" 
         modal 
-        :position="isMobile ? 'bottom' : undefined" 
+        :dismissableMask="true"
+        :position="isMobile ? 'bottom' : 'center'" 
         :style="dialogStyle"
         :showHeader="false"
-        :maskClass="isMobile ? '' : 'desktop-score-input-mask'"
+        @hide="onCancel"
         class="score-input-dialog"
     >
         <div class="score-input-container">
@@ -2574,37 +2575,11 @@ const isMobile = useMediaQuery('(max-width: 768px)');
 
 const record = computed(() => UIStore.scoreInputRecord);
 
-// 計算電腦版定位與樣式
+// 計算電腦版樣式
 const dialogStyle = computed(() => {
     if (isMobile.value) {
         return { width: '100vw', maxWidth: '420px', margin: '0' };
     }
-    
-    if (UIStore.scoreInputPosition) {
-        const padding = 10;
-        let left = UIStore.scoreInputPosition.x;
-        // 確保不會超出螢幕右側
-        if (left + 360 > window.innerWidth) {
-            left = window.innerWidth - 360 - padding;
-        }
-        
-        let top = UIStore.scoreInputPosition.y + 8;
-        // 確保不會超出螢幕底部 (Dialog 高度約為 420px)
-        if (top + 450 > window.innerHeight) {
-            // 改顯示在儲存格上方 (40px 為儲存格預估高度)
-            top = Math.max(padding, UIStore.scoreInputPosition.y - 450 - 40);
-        }
-        
-        return {
-            position: 'absolute',
-            left: `${left}px`,
-            top: `${top}px`,
-            width: '340px',
-            margin: '0',
-            transform: 'none'
-        };
-    }
-    
     return { width: '340px', margin: '0' };
 });
 // 即時計算單曲 Play PTT
@@ -2991,12 +2966,6 @@ const onConfirm = () => {
     flex: 1;
     font-weight: 700 !important;
 }
-
-:deep(.desktop-score-input-mask) {
-  background-color: transparent !important;
-  display: block !important;
-  pointer-events: auto !important;
-}
 </style>
 
 ```
@@ -3005,7 +2974,7 @@ const onConfirm = () => {
 
 ```vue
 <template>
-    <Dialog v-model:visible="visible" modal header="個人設定" :style="{ width: '90vw', maxWidth: '350px' }">
+    <Dialog v-model:visible="visible" modal :dismissableMask="true" header="個人設定" :style="{ width: '90vw', maxWidth: '350px' }">
         <div class="settings-container-dialog">
             <!-- 顯示主題 -->
             <div class="settings-row">
@@ -4415,15 +4384,6 @@ const getTitleStyle = (lastUpdate: number) => {
 
 const onScoreCellClick = (event: MouseEvent, record: Record) => {
     event.stopPropagation(); // 阻止事件冒泡，防止觸發 PrimeVue 的行內編輯
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    
-    // 將位置資訊存入 Store (相對於 viewport)
-    UIStore.scoreInputPosition = {
-        x: rect.left,
-        y: rect.bottom
-    };
-    
     UIStore.scoreInputRecord = record;
     UIStore.isScoreInputDialogOpen = true;
 };
@@ -6783,7 +6743,6 @@ export const useUIStore = defineStore("UI", () => {
     const useExperimentalScoreInput = ref(false);
     const isScoreInputDialogOpen = ref(false);
     const scoreInputRecord = ref<Record | null>(null);
-    const scoreInputPosition = ref<{ x: number, y: number } | null>(null);
 
     const useExperimentalPttEstimation = ref(false);
     const pttEstimationStartPoint = ref<string>('9500000'); // '9500000' | '9800000'

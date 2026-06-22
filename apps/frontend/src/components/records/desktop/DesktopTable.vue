@@ -353,15 +353,6 @@ const getTitleStyle = (lastUpdate: number) => {
 
 const onScoreCellClick = (event: MouseEvent, record: Record) => {
     event.stopPropagation(); // 阻止事件冒泡，防止觸發 PrimeVue 的行內編輯
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    
-    // 將位置資訊存入 Store (相對於 viewport)
-    UIStore.scoreInputPosition = {
-        x: rect.left,
-        y: rect.bottom
-    };
-    
     UIStore.scoreInputRecord = record;
     UIStore.isScoreInputDialogOpen = true;
 };

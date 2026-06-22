@@ -21,7 +21,6 @@ export const useUIStore = defineStore("UI", () => {
     const useExperimentalScoreInput = ref(false);
     const isScoreInputDialogOpen = ref(false);
     const scoreInputRecord = ref<Record | null>(null);
-    const scoreInputPosition = ref<{ x: number, y: number } | null>(null);
 
     const useExperimentalPttEstimation = ref(false);
     const pttEstimationStartPoint = ref<string>('9500000'); // '9500000' | '9800000'

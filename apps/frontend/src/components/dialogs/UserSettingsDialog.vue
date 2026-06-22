@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" modal header="個人設定" :style="{ width: '90vw', maxWidth: '350px' }">
+    <Dialog v-model:visible="visible" modal :dismissableMask="true" header="個人設定" :style="{ width: '90vw', maxWidth: '350px' }">
         <div class="settings-container-dialog">
             <!-- 顯示主題 -->
             <div class="settings-row">
