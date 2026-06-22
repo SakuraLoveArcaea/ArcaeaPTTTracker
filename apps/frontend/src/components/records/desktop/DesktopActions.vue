@@ -35,32 +35,26 @@
 import { ref } from 'vue';
 import Button from 'primevue/button';
 import ImportRecordDialog from '@/components/dialogs/ImportRecordDialog.vue';
-import {useUIStore} from "@/stores/uiStore";
-import {storeToRefs} from "pinia";
+import { useUIStore } from "@/stores/uiStore";
+import { storeToRefs } from "pinia";
+
 const UIStore = useUIStore();
 const { isAddDialogOpen, isImportDialogOpen } = storeToRefs(UIStore)
 
-// 定義要傳遞給父層 (TableView) 的事件
 const emit = defineEmits<{
     (e: 'request-add', form: any): void;
     (e: 'request-import', payload: { data: any[], overwrite: boolean, clearAll: boolean }): void;
     (e: 'request-export'): void;
 }>();
 
-// 管理 Dialog 顯示狀態
-
-
 const handleExport = () => {
     emit('request-export');
 };
 
-// 接收來自 ImportRecordDialog 的資料，並往上層傳遞
 const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: boolean }) => {
     emit('request-import', payload);
-    isImportDialogOpen.value = false; // 送出後關閉彈窗
+    isImportDialogOpen.value = false;
 };
-
-
 </script>
 
 <style scoped>
@@ -70,14 +64,5 @@ const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: bool
     align-items: center;
     gap: 1rem;
     padding: 0.5rem;
-}
-
-
-
-/* 行動裝置響應式設定 - 完全隱藏電腦版匯出/匯入/新增按鈕 */
-@media (max-width: 768px) {
-    .actions-container {
-        display: none !important;
-    }
 }
 </style>

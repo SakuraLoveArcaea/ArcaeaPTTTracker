@@ -1,5 +1,12 @@
 <template>
-    <div class="home-layout">
+    <div class="records-dashboard-container">
+        <!-- 標題欄位 -->
+        <div class="panel-header-row">
+            <h3 class="panel-title">
+                <i class="pi pi-list title-icon"></i>
+                成績紀錄清單
+            </h3>
+        </div>
         <!-- 提示看板 -->
         <div class="edit-hint-banner">
             <i class="pi pi-info-circle hint-icon"></i>
@@ -11,18 +18,9 @@
             </span>
         </div>
 
-        <!-- 頂部操作按鈕 (新增/匯入/匯出) -->
-        <div class="actions-wrapper">
-            <RecordsActions
-                @request-add="onAddRecordForm"
-                @request-import="handleImportData"
-                @request-export="onExportRecordsToJson"
-            />
-        </div>
-
-        <!-- 可複用的成績表格 (首頁設定為可編輯、可刪除) -->
+        <!-- 可複用的成績表格 (首頁設定為可編輯、可刪除，並接聽來自內部元件的操作事件) -->
         <div class="table-wrapper">
-            <RecordsTable
+            <RecordsDispatcher
                 :records="records"
                 :isLoading="isLoading"
                 :setting="{ logBase: 2, baseHue: 142, maxLevels: 7}"
@@ -31,6 +29,9 @@
                 :showFading="true"
                 @request-update="onUpdateFromTable"
                 @request-delete="onDelete"
+                @request-add="onAddRecordForm"
+                @request-import="handleImportData"
+                @request-export="onExportRecordsToJson"
             />
         </div>
 
@@ -50,8 +51,7 @@
 import { ref, watch, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 
-import RecordsTable from "./recordTable/RecordsTable.vue";
-import RecordsActions from "./recordActions/RecordsActions.vue";
+import RecordsDispatcher from "./RecordsDispatcher.vue";
 import MergeDataDialog from '@/components/dialogs/MergeDataDialog.vue';
 
 import { useAuthStore } from "@/stores/authStore";
@@ -206,11 +206,38 @@ const handleImportData = async ({ data, overwrite, clearAll }: { data: any[], ov
 </script>
 
 <style scoped lang="scss">
-.home-layout {
+.records-dashboard-container {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.panel-header-row {
+  margin-bottom: 1.25rem;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-top: 0;
+  margin-bottom: 0;
+
+  .title-icon {
+    color: #3b82f6;
+    font-size: 1.1rem;
+  }
+}
+
+// 日間模式適應樣式 (Day/Light Mode)
+:root:not(.p-dark) {
+  .panel-title {
+    color: #0f172a;
+  }
 }
 
 // 提示橫幅樣式 (Glassmorphism + 左側提醒框)

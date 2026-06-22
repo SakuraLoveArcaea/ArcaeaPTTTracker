@@ -1,138 +1,129 @@
 <template>
-    <div class="records-table-container">
-        <!-- 電腦版傳統表格 -->
-        <div class="desktop-only-table">
-            <DataTable
-                :value="records"
-                :loading="isLoading"
-                size="small"
-                sort-field="playPtt"
-                :sort-order="-1"
-                :edit-mode="editable ? 'cell' : undefined"
-                @cell-edit-init="onCellEditInit"
-                @cell-edit-complete="onCellEditComplete"
-                @cell-edit-cancel="onCellEditCancel"
-            >
-                <template #empty>
-                    <div class="empty-state">
-                        目前沒有任何成績。<br/>
-                        <span v-if="editable">點擊右上角「新增」手動加入，或「匯入」現有資料。</span>
-                    </div>
-                </template>
-
-                <!-- 1. # 排名/刪除 欄位 -->
-                <Column v-if="visibleColumns.includes('rank')" key="rank" class="column-rank" style="width: 50px">
-                    <template #header>
-                        <span class="header">#</span>
-                    </template>
-                    <template #body="{ data, index }">
-                        <Button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績" variant="text" severity="secondary">
-                            <span class="rank-text">{{ index < 30 ? index + 1 : '-' }}</span>
-                            <i class="pi pi-trash delete-icon"></i>
-                        </Button>
-                        <span v-else class="body plain-rank-text" :class="{ 'top-three': index < 3 }">
-                            {{ index < 30 ? index + 1 : '-' }}
-                        </span>
-                    </template>
-                </Column>
-
-                <!-- 2. 曲名 欄位 -->
-                <Column v-if="visibleColumns.includes('title')" key="title" field="title" class="column-title">
-                    <template #header>
-                        <span class="header">曲名</span>
-                    </template>
-                    <template #body="{ data }">
-                        <span class="body title-span" :style="getTitleStyle(data.lastUpdate)">
-                            {{ data.title }}
-                            <small v-if="data.autoUpdate" class="db-badge" title="資料庫自動更新">
-                                <i class="pi pi-link"></i>
-                            </small>
-                        </span>
-                    </template>
-                    <template #editor="{ data, field }">
-                        <InputText class="editor" v-model="data[field]" :disabled="data.autoUpdate === true" autofocus fluid />
-                    </template>
-                </Column>
-
-                <!-- 3. 上次更新 欄位 -->
-                <Column v-if="visibleColumns.includes('lastUpdate')" key="lastUpdate" field="lastUpdate" class="column-lastUpdate" style="width: 100px">
-                    <template #header>
-                        <span class="header">上次更新</span>
-                    </template>
-                    <template #body="{ data }">
-                        <span class="body date-text">
-                            <small>{{ data.lastUpdate ? new Date(data.lastUpdate).toLocaleDateString() : '-' }}</small>
-                        </span>
-                    </template>
-                </Column>
-
-                <!-- 4. 難度 欄位 -->
-                <Column v-if="visibleColumns.includes('difficulty')" key="difficulty" field="difficulty" class="column-difficulty" style="width: 8rem">
-                    <template #header>
-                        <span class="header">難度</span>
-                    </template>
-                    <template #body="{ data }">
-                        <span class="body diff-badge" :style="{ backgroundColor: diffColors[data.difficulty as Difficulty] }">
-                            {{ data.difficulty }}
-                        </span>
-                    </template>
-                    <template #editor="{ data, field }">
-                        <Select class="editor" v-model="data[field]" :options="difficulties" :disabled="data.autoUpdate === true" autofocus fluid />
-                    </template>
-                </Column>
-
-                <!-- 5. 定數 欄位 -->
-                <Column v-if="visibleColumns.includes('constant')" key="constant" field="constant" class="column-constant" style="width: 6rem">
-                    <template #header>
-                        <span class="header">定數</span>
-                    </template>
-                    <template #body="{ data }">
-                        <span class="body constant-text">{{ data.constant.toFixed(1) }}</span>
-                    </template>
-                    <template #editor="{ data, field }">
-                        <InputNumber class="editor" v-model="data[field]" :minFractionDigits="1" :maxFractionDigits="1" :disabled="data.autoUpdate === true" autofocus fluid />
-                    </template>
-                </Column>
-
-                <!-- 6. 分數 欄位 -->
-                <Column v-if="visibleColumns.includes('score')" key="score" field="score" class="column-score" style="width: 8rem">
-                    <template #header>
-                        <span class="header">分數</span>
-                    </template>
-                    <template #body="{ data }">
-                        <span class="body score-text">{{ data.score.toFixed(4) }}</span>
-                    </template>
-                    <template #editor="{ data, field }">
-                        <InputNumber class="editor" v-model="data[field]" :minFractionDigits="4" :maxFractionDigits="4" autofocus fluid />
-                    </template>
-                </Column>
-
-                <!-- 7. playPtt 欄位 -->
-                <Column v-if="visibleColumns.includes('playPtt')" key="playPtt" field="playPtt" sortable class="column-ptt" style="width: 6rem">
-                    <template #header>
-                        <span class="header">playPtt</span>
-                    </template>
-                    <template #body="{ data }">
-                        <span class="body ptt-text">{{ data.playPtt.toFixed(4) }}</span>
-                    </template>
-                </Column>
-
-
-            </DataTable>
-        </div>
-
-        <!-- 手機版自定義摺疊卡片列表 -->
-        <div class="mobile-only-list">
-            <RecordsMobileList
-                :records="records"
-                :isLoading="isLoading"
-                :editable="editable"
-                :deletable="deletable"
-                :showFading="showFading"
-                :setting="setting"
-                @request-delete="requestDelete"
+    <div class="records-desktop-table-container">
+        <!-- 頂部操作按鈕 (新增/匯入/匯出) -->
+        <div class="actions-wrapper">
+            <DesktopActions
+                @request-add="(form) => $emit('request-add', form)"
+                @request-import="(p) => $emit('request-import', p)"
+                @request-export="() => $emit('request-export')"
             />
         </div>
+
+        <DataTable
+            :value="records"
+            :loading="isLoading"
+            size="small"
+            sort-field="playPtt"
+            :sort-order="-1"
+            :edit-mode="editable ? 'cell' : undefined"
+            @cell-edit-init="onCellEditInit"
+            @cell-edit-complete="onCellEditComplete"
+            @cell-edit-cancel="onCellEditCancel"
+        >
+            <template #empty>
+                <div class="empty-state">
+                    目前沒有任何成績。<br/>
+                    <span v-if="editable">點擊右上角「新增」手動加入，或「匯入」現有資料。</span>
+                </div>
+            </template>
+
+            <!-- 1. # 排名/刪除 欄位 -->
+            <Column v-if="visibleColumns.includes('rank')" key="rank" class="column-rank" style="width: 50px">
+                <template #header>
+                    <span class="header">#</span>
+                </template>
+                <template #body="{ data, index }">
+                    <Button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績" variant="text" severity="secondary">
+                        <span class="rank-text">{{ index < 30 ? index + 1 : '-' }}</span>
+                        <i class="pi pi-trash delete-icon"></i>
+                    </Button>
+                    <span v-else class="body plain-rank-text" :class="{ 'top-three': index < 3 }">
+                        {{ index < 30 ? index + 1 : '-' }}
+                    </span>
+                </template>
+            </Column>
+
+            <!-- 2. 曲名 欄位 -->
+            <Column v-if="visibleColumns.includes('title')" key="title" field="title" class="column-title">
+                <template #header>
+                    <span class="header">曲名</span>
+                </template>
+                <template #body="{ data }">
+                    <span class="body title-span" :style="getTitleStyle(data.lastUpdate)">
+                        {{ data.title }}
+                        <small v-if="data.autoUpdate" class="db-badge" title="資料庫自動更新">
+                            <i class="pi pi-link"></i>
+                        </small>
+                    </span>
+                </template>
+                <template #editor="{ data, field }">
+                    <InputText class="editor" v-model="data[field]" :disabled="data.autoUpdate === true" autofocus fluid />
+                </template>
+            </Column>
+
+            <!-- 3. 上次更新 欄位 -->
+            <Column v-if="visibleColumns.includes('lastUpdate')" key="lastUpdate" field="lastUpdate" class="column-lastUpdate" style="width: 100px">
+                <template #header>
+                    <span class="header">上次更新</span>
+                </template>
+                <template #body="{ data }">
+                    <span class="body date-text">
+                        <small>{{ data.lastUpdate ? new Date(data.lastUpdate).toLocaleDateString() : '-' }}</small>
+                    </span>
+                </template>
+            </Column>
+
+            <!-- 4. 難度 欄位 -->
+            <Column v-if="visibleColumns.includes('difficulty')" key="difficulty" field="difficulty" class="column-difficulty" style="width: 8rem">
+                <template #header>
+                    <span class="header">難度</span>
+                </template>
+                <template #body="{ data }">
+                    <span class="body diff-badge" :style="{ backgroundColor: diffColors[data.difficulty as Difficulty] }">
+                        {{ data.difficulty }}
+                    </span>
+                </template>
+                <template #editor="{ data, field }">
+                    <Select class="editor" v-model="data[field]" :options="difficulties" :disabled="data.autoUpdate === true" autofocus fluid />
+                </template>
+            </Column>
+
+            <!-- 5. 定數 欄位 -->
+            <Column v-if="visibleColumns.includes('constant')" key="constant" field="constant" class="column-constant" style="width: 6rem">
+                <template #header>
+                    <span class="header">定數</span>
+                </template>
+                <template #body="{ data }">
+                    <span class="body constant-text">{{ data.constant.toFixed(1) }}</span>
+                </template>
+                <template #editor="{ data, field }">
+                    <InputNumber class="editor" v-model="data[field]" :minFractionDigits="1" :maxFractionDigits="1" :disabled="data.autoUpdate === true" autofocus fluid />
+                </template>
+            </Column>
+
+            <!-- 6. 分數 欄位 -->
+            <Column v-if="visibleColumns.includes('score')" key="score" field="score" class="column-score" style="width: 8rem">
+                <template #header>
+                    <span class="header">分數</span>
+                </template>
+                <template #body="{ data }">
+                    <span class="body score-text">{{ data.score.toFixed(4) }}</span>
+                </template>
+                <template #editor="{ data, field }">
+                    <InputNumber class="editor" v-model="data[field]" :minFractionDigits="4" :maxFractionDigits="4" autofocus fluid />
+                </template>
+            </Column>
+
+            <!-- 7. playPtt 欄位 -->
+            <Column v-if="visibleColumns.includes('playPtt')" key="playPtt" field="playPtt" sortable class="column-ptt" style="width: 6rem">
+                <template #header>
+                    <span class="header">playPtt</span>
+                </template>
+                <template #body="{ data }">
+                    <span class="body ptt-text">{{ data.playPtt.toFixed(4) }}</span>
+                </template>
+            </Column>
+        </DataTable>
 
         <!-- 浮動儲存/取消動作列 -->
         <Transition name="editconfirm">
@@ -156,10 +147,7 @@ import Column from "primevue/column";
 import Select from "primevue/select";
 import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
-import RecordsMobileList from "./RecordsMobileList.vue";
-import { useUIStore } from "@/stores/uiStore";
-
-const UIStore = useUIStore();
+import DesktopActions from "./DesktopActions.vue";
 
 const props = defineProps({
     records: {
@@ -195,6 +183,9 @@ const props = defineProps({
 const emit = defineEmits<{
     (e: 'request-update', payload: { updatedData: Record, field: string, onSuccess: () => void, onError: () => void }): void;
     (e: 'request-delete', record: Record): void;
+    (e: 'request-add', form: any): void;
+    (e: 'request-import', payload: { data: any[], overwrite: boolean, clearAll: boolean }): void;
+    (e: 'request-export'): void;
 }>();
 
 const toast = useToast();
@@ -349,8 +340,15 @@ const getTitleStyle = (lastUpdate: number) => {
 </script>
 
 <style scoped lang="scss">
-.records-table-container {
+.records-desktop-table-container {
   position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.actions-wrapper {
   width: 100%;
 }
 
@@ -481,8 +479,6 @@ const getTitleStyle = (lastUpdate: number) => {
   color: var(--text-muted);
 }
 
-
-
 // 編輯器尺寸一致化
 .editor {
   height: 36px;
@@ -551,25 +547,6 @@ const getTitleStyle = (lastUpdate: number) => {
     * {
       cursor: not-allowed !important;
     }
-  }
-}
-
-.desktop-only-table {
-  display: block;
-  width: 100%;
-}
-
-.mobile-only-list {
-  display: none;
-  width: 100%;
-}
-
-@media (max-width: 768px) {
-  .desktop-only-table {
-    display: none !important;
-  }
-  .mobile-only-list {
-    display: block;
   }
 }
 </style>

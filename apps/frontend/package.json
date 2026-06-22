@@ -14,6 +14,7 @@
   "dependencies": {
     "@primevue/themes": "^4.5.4",
     "@tailwindcss/vite": "^4.2.1",
+    "@vueuse/core": "^14.3.0",
     "algoliasearch": "^5.49.2",
     "chart.js": "^4.5.1",
     "cors": "^2.8.6",
