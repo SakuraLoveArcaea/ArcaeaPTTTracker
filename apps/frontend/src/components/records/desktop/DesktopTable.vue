@@ -107,7 +107,15 @@
                     <span class="header">分數</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body score-text">{{ data.score.toFixed(4) }}</span>
+                    <span 
+                        class="body score-text" 
+                        :class="{ 'clickable-score-cell': editable && UIStore.useExperimentalScoreInput }"
+                        @click="editable && UIStore.useExperimentalScoreInput ? onScoreCellClick($event, data) : null"
+                        :title="editable && UIStore.useExperimentalScoreInput ? '點擊使用鍵盤更新分數' : undefined"
+                    >
+                        {{ data.score.toFixed(4) }}
+                        <i v-if="editable && UIStore.useExperimentalScoreInput" class="pi pi-pencil edit-score-icon-mini"></i>
+                    </span>
                 </template>
                 <template #editor="{ data, field }">
                     <InputNumber class="editor" v-model="data[field]" :minFractionDigits="4" :maxFractionDigits="4" autofocus fluid />
@@ -126,14 +134,16 @@
         </DataTable>
 
         <!-- 浮動儲存/取消動作列 -->
-        <Transition name="editconfirm">
-            <div v-if="isEditing && editable" class="floating-action-bar">
-                <div class="editing-actions">
-                    <Button label="取消 (Esc)" severity="secondary" outlined @mousedown.prevent="handleCancel" class="flex-1" />
-                    <Button label="儲存 (Enter)" severity="primary" @mousedown.prevent="handleSave" class="flex-1" />
+        <Teleport to="body">
+            <Transition name="editconfirm">
+                <div v-if="isEditing && editable" class="floating-action-bar">
+                    <div class="editing-actions">
+                        <Button label="取消 (Esc)" severity="secondary" outlined @mousedown.prevent="handleCancel" class="flex-1" />
+                        <Button label="儲存 (Enter)" severity="primary" @mousedown.prevent="handleSave" class="flex-1" />
+                    </div>
                 </div>
-            </div>
-        </Transition>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
@@ -147,7 +157,10 @@ import Column from "primevue/column";
 import Select from "primevue/select";
 import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
+import { useUIStore } from "@/stores/uiStore";
 import DesktopActions from "./DesktopActions.vue";
+
+const UIStore = useUIStore();
 
 const props = defineProps({
     records: {
@@ -336,6 +349,21 @@ const getTitleStyle = (lastUpdate: number) => {
     return {
         borderLeft: `4px solid hsl(${baseHue}, ${currentSaturation}%, ${currentLightness}%)`
     };
+};
+
+const onScoreCellClick = (event: MouseEvent, record: Record) => {
+    event.stopPropagation(); // 阻止事件冒泡，防止觸發 PrimeVue 的行內編輯
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    
+    // 將位置資訊存入 Store (相對於 viewport)
+    UIStore.scoreInputPosition = {
+        x: rect.left,
+        y: rect.bottom
+    };
+    
+    UIStore.scoreInputRecord = record;
+    UIStore.isScoreInputDialogOpen = true;
 };
 </script>
 
@@ -546,6 +574,32 @@ const getTitleStyle = (lastUpdate: number) => {
     
     * {
       cursor: not-allowed !important;
+    }
+  }
+}
+
+.score-text {
+  &.clickable-score-cell {
+    cursor: pointer !important;
+    color: #3b82f6 !important;
+    text-decoration: underline !important;
+    text-decoration-style: dashed !important;
+    text-underline-offset: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    transition: all 0.2s ease !important;
+    padding: 0 0.5rem !important;
+    border-radius: 4px !important;
+
+    &:hover {
+      color: #60a5fa !important;
+      background: rgba(59, 130, 246, 0.08) !important;
+    }
+
+    .edit-score-icon-mini {
+      font-size: 0.75rem !important;
+      opacity: 0.7 !important;
     }
   }
 }
