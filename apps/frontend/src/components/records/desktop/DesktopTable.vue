@@ -114,7 +114,6 @@
                         :title="editable && UIStore.useExperimentalScoreInput ? '點擊使用鍵盤更新分數' : undefined"
                     >
                         {{ data.score.toFixed(4) }}
-                        <i v-if="editable && UIStore.useExperimentalScoreInput" class="pi pi-pencil edit-score-icon-mini"></i>
                     </span>
                 </template>
                 <template #editor="{ data, field }">
@@ -573,12 +572,6 @@ const onScoreCellClick = (event: MouseEvent, record: Record) => {
   &.clickable-score-cell {
     cursor: pointer !important;
     color: #3b82f6 !important;
-    text-decoration: underline !important;
-    text-decoration-style: dashed !important;
-    text-underline-offset: 4px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.35rem !important;
     transition: all 0.2s ease !important;
     padding: 0 0.5rem !important;
     border-radius: 4px !important;
@@ -586,11 +579,6 @@ const onScoreCellClick = (event: MouseEvent, record: Record) => {
     &:hover {
       color: #60a5fa !important;
       background: rgba(59, 130, 246, 0.08) !important;
-    }
-
-    .edit-score-icon-mini {
-      font-size: 0.75rem !important;
-      opacity: 0.7 !important;
     }
   }
 }
