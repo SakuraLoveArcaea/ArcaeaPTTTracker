@@ -619,6 +619,7 @@ html, body {
                     severity="secondary"
                     @click="toggleXAxisMode"
                     class="toggle-xaxis-btn"
+                    :disabled="!showSinglePttLine"
                 />
             </div>
         </div>
@@ -719,6 +720,7 @@ const chartHeight = ref(window.innerWidth < 768 ? 260 : (window.innerWidth < 102
 const isMobileView = ref(window.innerWidth < 768);
 
 // 輔助線與統計狀態
+const showSinglePttLine = ref(true);
 const showMeanLine = ref(true);
 const showMedianLine = ref(false);
 const showStatsDialog = ref(false);
@@ -999,10 +1001,17 @@ const chartOptions = computed(() => {
                 name: '單曲 PTT',
                 data: chartData.value,
                 color: '#3b82f6',
+                visible: showSinglePttLine.value,
                 marker: {
                     enabled: true,
                     radius: isMobileView.value ? 3 : 4
                 },
+                events: {
+                    legendItemClick: function () {
+                        showSinglePttLine.value = !showSinglePttLine.value;
+                        return false;
+                    }
+                }
             },
             {
                 name: '平均值',
