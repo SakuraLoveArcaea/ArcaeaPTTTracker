@@ -6829,7 +6829,6 @@ export const useUIStore = defineStore("UI", () => {
         useExperimentalScoreInput,
         isScoreInputDialogOpen,
         scoreInputRecord,
-        scoreInputPosition,
         toggleExperimental,
         useExperimentalPttEstimation,
         pttEstimationStartPoint
