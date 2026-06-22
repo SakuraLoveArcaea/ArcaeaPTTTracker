@@ -602,12 +602,25 @@ html, body {
 <template>
     <div class="chart-wrapper-box">
         <!-- 自定義精美標題列 (點擊可開啟詳細統計 Dialog) -->
-        <div v-if="chartData.length > 0" class="chart-header-row" @click="showStatsDialog = true" title="點擊查看詳細統計數據">
-            <h4 class="chart-title">
-                你的 B30 趨勢
-                <i class="pi pi-info-circle info-icon"></i>
-            </h4>
-            <span class="chart-subtitle">點擊此處查看詳細統計數據（平均值、中位數、標準差）</span>
+        <div v-if="chartData.length > 0" class="chart-header-row">
+            <div class="header-left-stats" @click="showStatsDialog = true" title="點擊查看詳細統計數據">
+                <h4 class="chart-title">
+                    你的 B30 趨勢
+                    <i class="pi pi-info-circle info-icon"></i>
+                </h4>
+                <span class="chart-subtitle">點擊此處查看詳細統計數據（平均值、中位數、標準差）</span>
+            </div>
+            <div class="header-right-toggle">
+                <Button 
+                    :label="showSongNamesOnX ? '顯示排名' : '顯示歌名'" 
+                    :icon="showSongNamesOnX ? 'pi pi-hashtag' : 'pi pi-align-left'"
+                    size="small" 
+                    outlined
+                    severity="secondary"
+                    @click="toggleXAxisMode"
+                    class="toggle-xaxis-btn"
+                />
+            </div>
         </div>
 
         <div class="chart-container">
@@ -709,6 +722,15 @@ const isMobileView = ref(window.innerWidth < 768);
 const showMeanLine = ref(true);
 const showMedianLine = ref(false);
 const showStatsDialog = ref(false);
+
+// X 軸顯示歌名或排名切換狀態
+const savedXAxisMode = localStorage.getItem('arcaea_chart_xaxis_show_names');
+const showSongNamesOnX = ref(savedXAxisMode !== 'false');
+
+const toggleXAxisMode = () => {
+    showSongNamesOnX.value = !showSongNamesOnX.value;
+    localStorage.setItem('arcaea_chart_xaxis_show_names', String(showSongNamesOnX.value));
+};
 
 const handleResize = () => {
     chartHeight.value = window.innerWidth < 768 ? 260 : (window.innerWidth < 1025 ? 360 : 480);
@@ -900,17 +922,16 @@ const chartOptions = computed(() => {
         },
         xAxis: {
             title: { 
-                text: isMobileView.value ? null : '歌曲',
+                text: isMobileView.value ? null : (showSongNamesOnX.value ? '歌曲' : '排名'),
                 style: { color: textColor }
             },
-            // 手機版使用排名作為橫軸類別，避免歌名過長重疊擠壓；電腦版仍顯示歌名
-            categories: isMobileView.value 
-                ? chartData.value.map((_, idx) => `#${idx + 1}`) 
-                : chartData.value.map(item => item.title),
+            categories: showSongNamesOnX.value 
+                ? chartData.value.map(item => item.title)
+                : chartData.value.map((_, idx) => `#${idx + 1}`),
             crosshair: true,
             labels: {
-                enabled: !isMobileView.value, // 手機版完全不顯示 X 軸標籤，保持圖表極度乾淨
-                rotation: isMobileView.value ? 0 : -90, 
+                enabled: isMobileView.value ? !showSongNamesOnX.value : true, // 手機端若是排名模式則顯示橫軸標籤
+                rotation: showSongNamesOnX.value ? -90 : 0, // 顯示排名時橫向易讀，不需旋轉
                 style: {
                     color: textColor,
                     fontSize: '10px'
@@ -1029,14 +1050,23 @@ const chartOptions = computed(() => {
 
 .chart-header-row {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    user-select: none;
+    gap: 1rem;
+}
+
+.header-left-stats {
+    display: flex;
     flex-direction: column;
     gap: 0.15rem;
     cursor: pointer;
-    padding: 0.5rem 0.75rem;
     border-radius: 8px;
     transition: background-color 0.2s, transform 0.2s;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    padding: 0.25rem 0.5rem;
+    flex: 1;
+    min-width: 0;
 
     &:hover {
         background: var(--options-bg);
@@ -1054,6 +1084,16 @@ const chartOptions = computed(() => {
     &:active {
         transform: translateY(0);
     }
+}
+
+.header-right-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-xaxis-btn {
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
 }
 
 .chart-title {
