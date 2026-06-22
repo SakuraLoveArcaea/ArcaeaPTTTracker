@@ -207,7 +207,6 @@ const cancelLongPressTimer = () => {
 };
 
 const onTouchStart = (event: TouchEvent) => {
-    if (props.isExpanded) return;
     const touch = event.touches[0];
     startTouchX.value = touch.clientX;
     startTouchY.value = touch.clientY;
@@ -234,7 +233,6 @@ const onTouchEnd = (event: TouchEvent) => {
 };
 
 const onMouseDown = (event: MouseEvent) => {
-    if (props.isExpanded) return;
     if (event.button !== 0) return;
     startLongPressTimer(event.currentTarget as HTMLElement);
 };
@@ -332,6 +330,7 @@ const getCardStyle = (lastUpdate: number) => {
     min-height: 50px;
     align-items: stretch;
     position: relative;
+    user-select: none;
 }
 
 .card-rank-badge {

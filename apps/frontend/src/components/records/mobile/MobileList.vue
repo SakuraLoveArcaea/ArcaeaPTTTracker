@@ -35,6 +35,33 @@
                 @long-press="onCardLongPress"
             />
         </div>
+
+        <!-- YouTube 搜尋確認對話框 -->
+        <Dialog
+            v-model:visible="showYoutubeSearchDialog"
+            header="前往 YouTube 搜尋"
+            modal
+            :draggable="false"
+            :dismissableMask="true"
+            class="youtube-dialog"
+            style="width: 90%; max-width: 400px;"
+        >
+            <div class="youtube-dialog-content">
+                <div class="youtube-icon-wrapper">
+                    <i class="pi pi-youtube"></i>
+                </div>
+                <div class="youtube-text">
+                    <p class="confirm-message">是否前往 YouTube 搜尋此歌曲的譜面/手元？</p>
+                    <p class="search-query-preview">搜尋關鍵字：<strong>{{ longPressRecord?.title }} {{ longPressRecord?.difficulty }}</strong></p>
+                </div>
+            </div>
+            <template #footer>
+                <div class="dialog-buttons">
+                    <Button label="取消" outlined severity="secondary" @click="showYoutubeSearchDialog = false" class="dialog-btn" />
+                    <Button label="搜尋" severity="danger" @click="confirmYoutubeSearch" class="dialog-btn" />
+                </div>
+            </template>
+        </Dialog>
     </div>
 </template>
 
@@ -42,6 +69,8 @@
 import { ref, PropType, watch, computed } from 'vue';
 import { Record } from '@/utils/record';
 import Menu from 'primevue/menu';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
 import { useUIStore } from '@/stores/uiStore';
 import { useRecordsStore } from '@/stores/recordsStore';
 import MobileCard from './MobileCard.vue';
@@ -99,13 +128,32 @@ watch(() => UIStore.expandedRecordId, (newVal) => {
     }
 });
 
+// YouTube 搜尋與狀態
+const showYoutubeSearchDialog = ref(false);
+const longPressRecord = ref<Record | null>(null);
+
+const confirmYoutubeSearch = () => {
+    if (!longPressRecord.value) return;
+    const record = longPressRecord.value;
+    const query = encodeURIComponent(record.title + ' ' + record.difficulty);
+    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+    showYoutubeSearchDialog.value = false;
+};
+
 // 處理來自子組件的長按事件
 const onCardLongPress = (payload: { el: HTMLElement, record: Record }) => {
-    if (!props.deletable) return;
     selectedRecord.value = payload.record;
-    if (rankMenu.value && payload.el) {
-        // 使用 mock event 確保 PrimeVue 選單精準對齊卡片容器
-        rankMenu.value.toggle({ currentTarget: payload.el, target: payload.el });
+    
+    // 未展開長按且是已連結的紀錄 -> 觸發 YouTube
+    if (expandedRecordId.value !== payload.record.id && payload.record.autoUpdate) {
+        longPressRecord.value = payload.record;
+        showYoutubeSearchDialog.value = true;
+    } else {
+        // 展開後長按，或者未展開但非連結紀錄 -> 彈出操作選單 (取消連結、刪除紀錄)
+        if (!props.deletable) return;
+        if (rankMenu.value && payload.el) {
+            rankMenu.value.toggle({ currentTarget: payload.el, target: payload.el });
+        }
     }
 };
 
@@ -217,5 +265,91 @@ const menuItems = computed(() => {
 .menu-item-icon {
     font-size: 0.95rem;
     color: var(--text-muted);
+}
+
+/* YouTube Search Dialog Styling */
+:deep(.youtube-dialog) {
+  background: var(--dialog-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+
+  .p-dialog-header {
+    background: var(--dialog-header-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 1.25rem 1.5rem !important;
+    color: var(--text-color) !important;
+    font-weight: 700 !important;
+  }
+
+  .p-dialog-content {
+    background: transparent !important;
+    padding: 1.5rem !important;
+  }
+
+  .p-dialog-footer {
+    background: var(--dialog-header-bg) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 0.75rem 1.5rem !important;
+  }
+}
+
+.youtube-dialog-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  color: var(--text-color);
+}
+
+.youtube-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.youtube-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  .confirm-message {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .search-query-preview {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    
+    strong {
+      color: var(--text-color);
+      background: var(--options-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+  }
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  
+  .dialog-btn {
+    flex: 1;
+  }
 }
 </style>
