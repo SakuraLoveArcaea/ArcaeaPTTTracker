@@ -4084,7 +4084,20 @@ const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: bool
                     <span class="header">曲名</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body title-span" :style="getTitleStyle(data.lastUpdate)">
+                    <span 
+                        class="body title-span" 
+                        :style="getTitleStyle(data.lastUpdate)"
+                        :class="{ 'linked-record': data.autoUpdate }"
+                        :title="data.autoUpdate ? '資料庫自動更新 (長按可搜尋 YouTube)' : undefined"
+                        @mousedown="startLongPress($event, data)"
+                        @touchstart="startLongPress($event, data)"
+                        @mouseup="handleMouseUpOrClick($event)"
+                        @touchend="handleMouseUpOrClick($event)"
+                        @touchcancel="handleMouseUpOrClick($event)"
+                        @mouseleave="cancelLongPress"
+                        @touchmove="cancelLongPress"
+                        @click="handleMouseUpOrClick($event)"
+                    >
                         {{ data.title }}
                         <small v-if="data.autoUpdate" class="db-badge" title="資料庫自動更新">
                             <i class="pi pi-link"></i>
@@ -4205,6 +4218,33 @@ const handleImport = (payload: { data: any[], overwrite: boolean, clearAll: bool
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- YouTube 搜尋確認對話框 -->
+        <Dialog
+            v-model:visible="showYoutubeSearchDialog"
+            header="前往 YouTube 搜尋"
+            modal
+            :draggable="false"
+            :dismissableMask="true"
+            class="youtube-dialog"
+            style="width: 90%; max-width: 400px;"
+        >
+            <div class="youtube-dialog-content">
+                <div class="youtube-icon-wrapper">
+                    <i class="pi pi-youtube"></i>
+                </div>
+                <div class="youtube-text">
+                    <p class="confirm-message">是否前往 YouTube 搜尋此歌曲的譜面/手元？</p>
+                    <p class="search-query-preview">搜尋關鍵字：<strong>{{ longPressRecord?.title }} {{ longPressRecord?.difficulty }}</strong></p>
+                </div>
+            </div>
+            <template #footer>
+                <div class="dialog-buttons">
+                    <Button label="取消" outlined severity="secondary" @click="showYoutubeSearchDialog = false" class="dialog-btn" />
+                    <Button label="搜尋" severity="danger" @click="confirmYoutubeSearch" class="dialog-btn" />
+                </div>
+            </template>
+        </Dialog>
     </div>
 </template>
 
@@ -4217,6 +4257,7 @@ import InputText from "primevue/inputtext";
 import Column from "primevue/column";
 import Select from "primevue/select";
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import { useToast } from "primevue/usetoast";
 import { useUIStore } from "@/stores/uiStore";
 import { useRecordsStore } from "@/stores/recordsStore";
@@ -4283,6 +4324,55 @@ const activeCellCount = ref(0);
 const originalRecord = ref<Record | null>(null);
 const isCurrentCellDisabled = ref(false);
 const editingRowRecord = ref<Record | null>(null);
+
+// YouTube 搜尋與長按狀態
+const showYoutubeSearchDialog = ref(false);
+const longPressRecord = ref<Record | null>(null);
+const longPressTimer = ref<any>(null);
+const isLongPressActive = ref(false);
+
+const startLongPress = (event: MouseEvent | TouchEvent, record: Record) => {
+    if (!record.autoUpdate) return;
+    if (event instanceof MouseEvent && event.button !== 0) return;
+    
+    cancelLongPress();
+    isLongPressActive.value = false;
+    
+    longPressTimer.value = setTimeout(() => {
+        isLongPressActive.value = true;
+        longPressRecord.value = record;
+        showYoutubeSearchDialog.value = true;
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+    }, 600);
+};
+
+const cancelLongPress = () => {
+    if (longPressTimer.value) {
+        clearTimeout(longPressTimer.value);
+        longPressTimer.value = null;
+    }
+};
+
+const handleMouseUpOrClick = (event: MouseEvent | TouchEvent) => {
+    cancelLongPress();
+    if (isLongPressActive.value) {
+        event.preventDefault();
+        event.stopPropagation();
+        setTimeout(() => {
+            isLongPressActive.value = false;
+        }, 50);
+    }
+};
+
+const confirmYoutubeSearch = () => {
+    if (!longPressRecord.value) return;
+    const record = longPressRecord.value;
+    const query = encodeURIComponent(record.title + ' ' + record.difficulty);
+    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+    showYoutubeSearchDialog.value = false;
+};
 
 const onCellEditInit = (event: any) => { 
     if (!props.editable) return;
@@ -4516,12 +4606,20 @@ const handleUnlinkCurrentSong = () => {
 }
 
 .title-span {
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.2s;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
   height: 100%;
+  user-select: none;
+
+  &.linked-record {
+    &:active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-radius: 4px;
+    }
+  }
 }
 
 .db-badge {
@@ -4689,6 +4787,92 @@ const handleUnlinkCurrentSong = () => {
       color: #60a5fa !important;
       background: rgba(59, 130, 246, 0.08) !important;
     }
+  }
+}
+
+/* YouTube Search Dialog Styling */
+:deep(.youtube-dialog) {
+  background: var(--dialog-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+
+  .p-dialog-header {
+    background: var(--dialog-header-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 1.25rem 1.5rem !important;
+    color: var(--text-color) !important;
+    font-weight: 700 !important;
+  }
+
+  .p-dialog-content {
+    background: transparent !important;
+    padding: 1.5rem !important;
+  }
+
+  .p-dialog-footer {
+    background: var(--dialog-header-bg) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 0.75rem 1.5rem !important;
+  }
+}
+
+.youtube-dialog-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  color: var(--text-color);
+}
+
+.youtube-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.youtube-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  .confirm-message {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .search-query-preview {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    
+    strong {
+      color: var(--text-color);
+      background: var(--options-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+  }
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  
+  .dialog-btn {
+    flex: 1;
   }
 }
 </style>
