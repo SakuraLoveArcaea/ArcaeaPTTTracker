@@ -137,8 +137,35 @@
             <Transition name="editconfirm">
                 <div v-if="isEditing && editable" class="floating-action-bar">
                     <div class="editing-actions">
-                        <Button label="取消 (Esc)" severity="secondary" outlined @mousedown.prevent="handleCancel" class="flex-1" />
-                        <Button label="儲存 (Enter)" severity="primary" @mousedown.prevent="handleSave" class="flex-1" />
+                        <Button label="取消" severity="secondary" outlined @mousedown.prevent="handleCancel" class="flex-1" />
+                        
+                        <!-- 連結 / 斷開資料庫按鈕 -->
+                        <Button 
+                            v-if="editingRowRecord && !editingRowRecord.autoUpdate"
+                            label="連結資料庫" 
+                            icon="pi pi-link"
+                            severity="info" 
+                            outlined
+                            @mousedown.prevent="handleOpenBindDialog" 
+                            class="flex-1" 
+                        />
+                        <Button 
+                            v-else-if="editingRowRecord && editingRowRecord.autoUpdate"
+                            label="解除綁定" 
+                            icon="pi pi-link-slash"
+                            severity="warn" 
+                            outlined
+                            @mousedown.prevent="handleUnlinkCurrentSong" 
+                            class="flex-1" 
+                        />
+                        
+                        <Button 
+                            v-if="!isCurrentCellDisabled"
+                            label="儲存" 
+                            severity="primary" 
+                            @mousedown.prevent="handleSave" 
+                            class="flex-1" 
+                        />
                     </div>
                 </div>
             </Transition>
@@ -157,9 +184,13 @@ import Select from "primevue/select";
 import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
 import { useUIStore } from "@/stores/uiStore";
+import { useRecordsStore } from "@/stores/recordsStore";
+import { useConfirm } from "primevue/useconfirm";
 import DesktopActions from "./DesktopActions.vue";
 
 const UIStore = useUIStore();
+const recordsStore = useRecordsStore();
+const confirm = useConfirm();
 
 const props = defineProps({
     records: {
@@ -215,25 +246,39 @@ const diffColors: Record<Difficulty, string> = {
 const isEditing = ref(false);
 const activeCellCount = ref(0);
 const originalRecord = ref<Record | null>(null);
+const isCurrentCellDisabled = ref(false);
+const editingRowRecord = ref<Record | null>(null);
 
 const onCellEditInit = (event: any) => { 
     if (!props.editable) return;
-    const { data } = event;
+    const { data, field } = event;
     // 儲存原始資料以備取消之用
     originalRecord.value = { ...data };
+    editingRowRecord.value = data;
     activeCellCount.value++; 
     isEditing.value = true; 
+    
+    // 判斷當前編輯的儲存格是否為唯讀 (data.autoUpdate === true 且編輯非分數的自動更新欄位)
+    isCurrentCellDisabled.value = data.autoUpdate === true && ['title', 'difficulty', 'constant'].includes(field);
 };
 
 const closeEditBar = () => {
     activeCellCount.value = Math.max(0, activeCellCount.value - 1);
-    setTimeout(() => { if (activeCellCount.value === 0) isEditing.value = false; }, 150);
+    setTimeout(() => { 
+        if (activeCellCount.value === 0) {
+            isEditing.value = false;
+            isCurrentCellDisabled.value = false;
+            editingRowRecord.value = null;
+        } 
+    }, 150);
 };
 
 const forceCloseBar = () => { 
     activeCellCount.value = 0; 
     isEditing.value = false; 
     originalRecord.value = null;
+    isCurrentCellDisabled.value = false;
+    editingRowRecord.value = null;
 };
 
 const onCellEditCancel = () => closeEditBar();
@@ -354,6 +399,35 @@ const onScoreCellClick = (event: MouseEvent, record: Record) => {
     event.stopPropagation(); // 阻止事件冒泡，防止觸發 PrimeVue 的行內編輯
     UIStore.scoreInputRecord = record;
     UIStore.isScoreInputDialogOpen = true;
+};
+
+const handleOpenBindDialog = () => {
+    if (!editingRowRecord.value) return;
+    const recordToBind = editingRowRecord.value;
+    handleCancel(); // 退出行內編輯
+    UIStore.editingRecord = recordToBind;
+    UIStore.isAddDialogOpen = true;
+};
+
+const handleUnlinkCurrentSong = () => {
+    if (!editingRowRecord.value) return;
+    const record = editingRowRecord.value;
+    confirm.require({
+        message: `您確定要取消「${record.title}」的自動更新連結嗎？\n取消連結後，您將可以手動編輯其曲名、定數與難度。`,
+        header: '取消自動更新連結',
+        icon: 'pi pi-link-slash',
+        rejectProps: { label: '取消', outlined: true, severity: 'secondary' },
+        acceptProps: { label: '確定斷開', severity: 'warning' },
+        accept: async () => {
+            handleCancel(); // 退出行內編輯
+            const updatedRecord = {
+                ...record,
+                autoUpdate: false
+            };
+            await recordsStore.onAddRecordForm(updatedRecord);
+            UIStore.showToast('success', '取消連結成功', `已將 ${record.title} 取消自動更新連結，現在可手動修改資料`);
+        }
+    });
 };
 </script>
 

@@ -186,6 +186,10 @@ watch(visible, (newVal) => {
             selectedSongData.value = record.autoUpdate 
                 ? { title: record.title, constants: { [record.difficulty]: record.constant } } 
                 : null;
+
+            if (!record.autoUpdate && searchQuery.value.trim()) {
+                performSearch();
+            }
         } else {
             // 新增模式：重置表單
             resetForm(true);
