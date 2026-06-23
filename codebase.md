@@ -610,7 +610,7 @@ html, body {
                 </h4>
                 <span class="chart-subtitle">點擊此處查看詳細統計數據（平均值、中位數、標準差）</span>
             </div>
-            <div class="header-right-toggle">
+            <div class="header-right-toggle" v-if="!isMobileView">
                 <Button 
                     :label="showSongNamesOnX ? '顯示排名' : '顯示歌名'" 
                     :icon="showSongNamesOnX ? 'pi pi-hashtag' : 'pi pi-align-left'"
@@ -695,6 +695,7 @@ html, body {
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { useMediaQuery } from '@vueuse/core';
 import { Chart } from 'highcharts-vue';
 import { useRecordsStore } from "@/stores/recordsStore";
 import { useUIStore } from "@/stores/uiStore";
@@ -716,8 +717,12 @@ const { records } = storeToRefs(recordsStore);
 const { isDarkTheme } = storeToRefs(UIStore);
 
 // 動態響應式高度與手機檢視管理
-const chartHeight = ref(window.innerWidth < 768 ? 260 : (window.innerWidth < 1025 ? 360 : 480));
-const isMobileView = ref(window.innerWidth < 768);
+const isMobileView = useMediaQuery('(max-width: 768px)');
+const isTabletView = useMediaQuery('(max-width: 1024px)');
+
+const chartHeight = computed(() => {
+    return isMobileView.value ? 260 : (isTabletView.value ? 360 : 480);
+});
 
 // 輔助線與統計狀態
 const showSinglePttLine = ref(true);
@@ -732,11 +737,6 @@ const showSongNamesOnX = ref(savedXAxisMode !== 'false');
 const toggleXAxisMode = () => {
     showSongNamesOnX.value = !showSongNamesOnX.value;
     localStorage.setItem('arcaea_chart_xaxis_show_names', String(showSongNamesOnX.value));
-};
-
-const handleResize = () => {
-    chartHeight.value = window.innerWidth < 768 ? 260 : (window.innerWidth < 1025 ? 360 : 480);
-    isMobileView.value = window.innerWidth < 768;
 };
 
 const stats = computed(() => {
@@ -796,7 +796,6 @@ const handleJumpToRecord = (recordId: string) => {
 };
 
 onMounted(() => {
-    window.addEventListener('resize', handleResize);
     // 註冊全域 JS 函數提供給 Highcharts HTML Tooltip 調用
     // @ts-ignore
     window.jumpToRecord = (recordId: string) => {
@@ -805,7 +804,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    window.removeEventListener('resize', handleResize);
     // @ts-ignore
     delete window.jumpToRecord;
 });
@@ -932,7 +930,7 @@ const chartOptions = computed(() => {
                 : chartData.value.map((_, idx) => `#${idx + 1}`),
             crosshair: true,
             labels: {
-                enabled: isMobileView.value ? !showSongNamesOnX.value : true, // 手機端若是排名模式則顯示橫軸標籤
+                enabled: !isMobileView.value,
                 rotation: showSongNamesOnX.value ? -90 : 0, // 顯示排名時橫向易讀，不需旋轉
                 style: {
                     color: textColor,
