@@ -114,6 +114,9 @@ const rankMenu = ref<any>(null);
 const selectedRecord = ref<Record | null>(null);
 
 const toggleExpand = (id: string) => {
+    if (rankMenu.value) {
+        rankMenu.value.hide();
+    }
     if (expandedRecordId.value === id) {
         expandedRecordId.value = null;
     } else {
@@ -124,6 +127,9 @@ const toggleExpand = (id: string) => {
 // 監聽來自 Pinia 的展開命令（圖表跳轉定位時觸發）
 watch(() => UIStore.expandedRecordId, (newVal) => {
     if (newVal) {
+        if (rankMenu.value) {
+            rankMenu.value.hide();
+        }
         expandedRecordId.value = newVal;
     }
 });
