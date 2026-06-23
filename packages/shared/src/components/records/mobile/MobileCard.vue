@@ -121,6 +121,7 @@ import { Record, Difficulty } from '@tracker/shared/utils/record';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
+import { useLongPress } from '@tracker/shared/utils/useLongPress';
 import MobileInlineChart from './MobileInlineChart.vue';
 
 const props = defineProps({
@@ -180,69 +181,27 @@ const onScoreUpdateClick = () => {
     UIStore.isScoreInputDialogOpen = true;
 };
 
-// 長按與觸控邏輯
-const touchTimer = ref<ReturnType<typeof setTimeout> | null>(null);
-const isLongPressActive = ref(false);
-const startTouchX = ref(0);
-const startTouchY = ref(0);
-
-const startLongPressTimer = (targetEl: HTMLElement) => {
-    isLongPressActive.value = false;
-    if (touchTimer.value) clearTimeout(touchTimer.value);
-    
-    touchTimer.value = setTimeout(() => {
-        isLongPressActive.value = true;
-        emit('long-press', { el: targetEl, record: props.record });
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
-    }, 600);
-};
-
-const cancelLongPressTimer = () => {
-    if (touchTimer.value) {
-        clearTimeout(touchTimer.value);
-        touchTimer.value = null;
-    }
-};
-
-const onTouchStart = (event: TouchEvent) => {
-    const touch = event.touches[0];
-    startTouchX.value = touch.clientX;
-    startTouchY.value = touch.clientY;
-    startLongPressTimer(event.currentTarget as HTMLElement);
-};
-
-const onTouchMove = (event: TouchEvent) => {
-    if (!touchTimer.value) return;
-    const touch = event.touches[0];
-    const diffX = Math.abs(touch.clientX - startTouchX.value);
-    const diffY = Math.abs(touch.clientY - startTouchY.value);
-    if (diffX > 10 || diffY > 10) {
-        cancelLongPressTimer();
-    }
-};
-
-const onTouchEnd = (event: TouchEvent) => {
-    cancelLongPressTimer();
-    if (isLongPressActive.value) {
-        event.preventDefault();
-        event.stopPropagation();
-        setTimeout(() => { isLongPressActive.value = false; }, 50);
-    }
-};
+// 導入自訂長按手勢 composable
+const {
+    start: onTouchStart,
+    move: onTouchMove,
+    cancel: onTouchEnd,
+    isLongPressActive
+} = useLongPress((targetEl) => {
+    emit('long-press', { el: targetEl, record: props.record });
+});
 
 const onMouseDown = (event: MouseEvent) => {
     if (event.button !== 0) return;
-    startLongPressTimer(event.currentTarget as HTMLElement);
+    onTouchStart(event);
 };
 
 const onMouseUp = (event: MouseEvent) => {
-    cancelLongPressTimer();
+    onTouchEnd();
 };
 
 const onMouseLeave = () => {
-    cancelLongPressTimer();
+    onTouchEnd();
 };
 
 const handleHeaderClick = (event: Event) => {
