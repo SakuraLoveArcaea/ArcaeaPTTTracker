@@ -61,6 +61,13 @@ const userMenuItems = computed(() => {
             command: () => {
                 showSettingsDialog.value = true;
             }
+        },
+        {
+            label: '使用教學',
+            icon: 'pi pi-question-circle',
+            command: () => {
+                // 預留位置，什麼都不要做
+            }
         }
     ];
 
