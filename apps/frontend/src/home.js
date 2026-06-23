@@ -1,3 +1,4 @@
+import './utils/touchInterventionPatch';
 import { createApp } from 'vue';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura'; // PrimeVue 4 的新主題，外觀很現代

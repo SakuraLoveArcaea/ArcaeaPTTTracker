@@ -522,6 +522,7 @@ export const router = createRouter({
 # apps/frontend/src/admin.js
 
 ```js
+import './utils/touchInterventionPatch';
 import { createApp } from 'vue';
 import App from './Admin.vue';
 import PrimeVue from 'primevue/config';
@@ -6833,6 +6834,7 @@ export const auth = getAuth(app);
 # apps/frontend/src/home.js
 
 ```js
+import './utils/touchInterventionPatch';
 import { createApp } from 'vue';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura'; // PrimeVue 4 的新主題，外觀很現代
@@ -7934,6 +7936,24 @@ export const testRecords: Record[] = [
 ];
 
 
+```
+
+# apps/frontend/src/utils/touchInterventionPatch.ts
+
+```ts
+// Patch Event.prototype.preventDefault globally to avoid browser console warnings:
+// "[Intervention] Ignored attempt to cancel a touchend event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
+// This happens when Highcharts' document-level touch listeners try to preventDefault on non-cancelable touch events.
+(function () {
+    if (typeof Event !== 'undefined' && Event.prototype) {
+        const originalPreventDefault = Event.prototype.preventDefault;
+        Event.prototype.preventDefault = function (this: Event) {
+            if (this.cancelable !== false) {
+                originalPreventDefault.call(this);
+            }
+        };
+    }
+})();
 ```
 
 # apps/frontend/src/views/AdminView.vue
