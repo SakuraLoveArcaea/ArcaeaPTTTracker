@@ -603,12 +603,22 @@ html, body {
     <div class="chart-wrapper-box">
         <!-- 自定義精美標題列 (點擊可開啟詳細統計 Dialog) -->
         <div v-if="chartData.length > 0" class="chart-header-row">
-            <div class="header-left-stats" @click="showStatsDialog = true" title="點擊查看詳細統計數據">
+            <div 
+                v-if="!isMobileView"
+                class="header-left-stats" 
+                @click="showStatsDialog = true" 
+                title="點擊查看詳細統計數據"
+            >
                 <h4 class="chart-title">
                     你的 B30 趨勢
                     <i class="pi pi-info-circle info-icon"></i>
                 </h4>
                 <span class="chart-subtitle">點擊此處查看詳細統計數據（平均值、中位數、標準差）</span>
+            </div>
+            <div v-else class="header-left-stats-mobile">
+                <h4 class="chart-title">
+                    你的 B30 趨勢
+                </h4>
             </div>
             <div class="header-right-toggle" v-if="!isMobileView">
                 <Button 
@@ -632,6 +642,49 @@ html, body {
             </div>
             <div v-else class="loading-overlay">
                 <span>📭 暫無 B30 成績數據</span>
+            </div>
+        </div>
+
+        <!-- 手機版專用：圖表下方的詳細統計數據 -->
+        <div v-if="chartData.length > 0 && isMobileView" class="mobile-stats-grid">
+            <div class="mobile-stat-card">
+                <div class="stat-icon-wrapper mean-bg">
+                    <i class="pi pi-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">B30 平均值</span>
+                    <span class="stat-value text-gold">{{ stats.mean.toFixed(4) }}</span>
+                </div>
+            </div>
+
+            <div class="mobile-stat-card">
+                <div class="stat-icon-wrapper median-bg">
+                    <i class="pi pi-sliders-h"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">B30 中位數</span>
+                    <span class="stat-value text-emerald">{{ stats.median.toFixed(4) }}</span>
+                </div>
+            </div>
+
+            <div class="mobile-stat-card">
+                <div class="stat-icon-wrapper std-bg">
+                    <i class="pi pi-percentage"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">標準差 (Std Dev)</span>
+                    <span class="stat-value text-blue">{{ stats.stdDev.toFixed(4) }}</span>
+                </div>
+            </div>
+
+            <div class="mobile-stat-card">
+                <div class="stat-icon-wrapper range-bg">
+                    <i class="pi pi-arrows-h"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">單曲 PTT 區間</span>
+                    <span class="stat-value">{{ stats.min.toFixed(2) }} ~ {{ stats.max.toFixed(2) }}</span>
+                </div>
             </div>
         </div>
 
@@ -1240,6 +1293,99 @@ const chartOptions = computed(() => {
 
 .close-btn {
     width: 100%;
+}
+
+.header-left-stats-mobile {
+    display: flex;
+    flex-direction: column;
+    padding: 0.25rem 0.5rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mobile-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--options-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-sizing: border-box;
+    min-width: 0;
+
+    .stat-icon-wrapper {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        
+        &.mean-bg {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        &.median-bg {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        &.std-bg {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+        &.range-bg {
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--text-muted);
+        }
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.05rem;
+        min-width: 0;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stat-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-color);
+        font-family: 'Courier New', Courier, monospace;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &.text-gold {
+            color: #f59e0b;
+        }
+        &.text-emerald {
+            color: #10b981;
+        }
+        &.text-blue {
+            color: #3b82f6;
+        }
+    }
 }
 </style>
 ```
