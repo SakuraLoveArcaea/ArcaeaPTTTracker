@@ -22,18 +22,31 @@
 
     <!-- 個人設定對話框 -->
     <UserSettingsDialog v-model:visible="showSettingsDialog" />
+
+    <!-- 更新日誌對話框 -->
+    <Dialog
+        v-model:visible="showChangelogDialog"
+        header="更新日誌"
+        modal
+        :style="{ width: '90vw', maxWidth: '600px' }"
+        dismissableMask
+    >
+        <ChangelogPanel />
+    </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import Avatar from 'primevue/avatar';
 import Menu from 'primevue/menu';
+import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecordsStore } from '@/stores/recordsStore';
 import { storeToRefs } from 'pinia';
 import UserSettingsDialog from '@/components/dialogs/UserSettingsDialog.vue';
+import ChangelogPanel from '@/components/dashboard/ChangelogPanel.vue';
 
 const props = defineProps({
     forceLogout: {
@@ -50,6 +63,7 @@ const recordsStore = useRecordsStore();
 const { currentUser } = storeToRefs(authStore);
 
 const showSettingsDialog = ref(false);
+const showChangelogDialog = ref(false);
 const userMenu = ref();
 
 // 響應式使用者選單項目
@@ -67,6 +81,13 @@ const userMenuItems = computed(() => {
             icon: 'pi pi-question-circle',
             command: () => {
                 // 預留位置，什麼都不要做
+            }
+        },
+        {
+            label: '更新日誌',
+            icon: 'pi pi-info-circle',
+            command: () => {
+                showChangelogDialog.value = true;
             }
         }
     ];

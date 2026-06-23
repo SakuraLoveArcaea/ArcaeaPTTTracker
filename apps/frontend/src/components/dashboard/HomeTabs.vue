@@ -8,9 +8,6 @@
                 <Tab value="chart">
                     <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
                 </Tab>
-                <Tab value="changelog">
-                    <i class="pi pi-info-circle tab-icon"></i>更新日誌
-                </Tab>
             </TabList>
             <TabPanels class="home-tabpanels">
                 <TabPanel value="table">
@@ -18,9 +15,6 @@
                 </TabPanel>
                 <TabPanel value="chart">
                     <ChartsDashboard />
-                </TabPanel>
-                <TabPanel value="changelog">
-                    <ChangelogPanel />
                 </TabPanel>
             </TabPanels>
         </Tabs>
@@ -35,7 +29,6 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import RecordsDashboard from "@/components/records/RecordsDashboard.vue";
 import ChartsDashboard from "@/components/charts/ChartsDashboard.vue";
-import ChangelogPanel from "@/components/dashboard/ChangelogPanel.vue";
 import { useUIStore } from "@/stores/uiStore";
 
 const UIStore = useUIStore();

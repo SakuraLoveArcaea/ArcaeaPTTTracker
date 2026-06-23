@@ -8,9 +8,6 @@
                 <Tab value="chart">
                     <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
                 </Tab>
-                <Tab value="changelog">
-                    <i class="pi pi-info-circle tab-icon"></i>更新日誌
-                </Tab>
             </TabList>
             <TabPanels class="admin-tabpanels">
                 <TabPanel value="table" class="admin-tabpanel">
@@ -43,15 +40,6 @@
                         <Best30Charts :records="records" />
                     </div>
                 </TabPanel>
-                <TabPanel value="changelog" class="admin-tabpanel">
-                    <div class="panel-header-row">
-                        <h3 class="panel-title">
-                            <i class="pi pi-info-circle title-icon"></i>
-                            系統更新日誌
-                        </h3>
-                    </div>
-                    <ChangelogPanel />
-                </TabPanel>
             </TabPanels>
         </Tabs>
     </div>
@@ -66,7 +54,6 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import RecordsDispatcher from '@/components/records/RecordsDispatcher.vue';
 import Best30Charts from "@/components/charts/best30Charts.vue";
-import ChangelogPanel from "@/components/dashboard/ChangelogPanel.vue";
 import { useUIStore } from '@/stores/uiStore';
 import { type Record } from '@/utils/record';
 
