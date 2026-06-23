@@ -1,0 +1,19 @@
+{
+  "name": "arcaea-ptt-tracker",
+  "workspaces": [
+    "apps/*"
+  ],
+  "private": true,
+  "version": "1.0.5",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "frontend": "pnpm --filter frontend dev",
+    "server": "pnpm --filter server server-start",
+    "frontend-dev-host": "pnpm --filter frontend dev-host"
+
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

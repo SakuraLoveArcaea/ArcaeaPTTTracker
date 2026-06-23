@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // 建議設定為較新的 JS 版本
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    // --- 這是解決問題的關鍵 ---
+    // 告訴 TypeScript 執行環境包含 ES2015 (其中有 Promise) 和 DOM (瀏覽器) 的 API
+    "lib": ["ES2015", "DOM", "DOM.Iterable", "ESNext"],
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+}
