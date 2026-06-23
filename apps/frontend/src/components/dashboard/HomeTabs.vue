@@ -17,7 +17,7 @@
                     <RecordsDashboard />
                 </TabPanel>
                 <TabPanel value="chart">
-                    <ChartsDashboard />
+                    <Best30Charts />
                 </TabPanel>
                 <TabPanel value="recent">
                     <div class="recent-scores-placeholder">
@@ -37,9 +37,9 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
-import RecordsDashboard from "@/components/records/RecordsDashboard.vue";
-import ChartsDashboard from "@/components/charts/ChartsDashboard.vue";
-import { useUIStore } from "@/stores/uiStore";
+import RecordsDashboard from "@tracker/shared/components/records/RecordsDashboard.vue";
+import Best30Charts from "@tracker/shared/components/charts/Best30Charts.vue";
+import { useUIStore } from "@tracker/shared/stores/uiStore";
 
 const UIStore = useUIStore();
 </script>

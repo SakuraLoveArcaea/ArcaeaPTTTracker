@@ -36,15 +36,14 @@
 <script setup lang="ts">
 import NavBar from "@/components/navbar/NavBar.vue";
 import HomeTabs from "@/components/dashboard/HomeTabs.vue";
-import AddRecordDialog from "@/components/dialogs/AddRecordDialog.vue";
-import ScoreInputDialog from "@/components/dialogs/ScoreInputDialog.vue";
+import { AddRecordDialog, ScoreInputDialog } from "@tracker/shared/components/dialogs";
 import Button from 'primevue/button';
-import { useRecordsStore } from "@/stores/recordsStore";
+import { useRecordsStore } from "@tracker/shared/stores/recordsStore";
 import { storeToRefs } from "pinia";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
-import { useUIStore } from "@/stores/uiStore";
+import { useUIStore } from "@tracker/shared/stores/uiStore";
 
 const recordsStore = useRecordsStore();
 const UIStore = useUIStore();

@@ -19,10 +19,10 @@
 </template>
 
 <script setup lang="ts">
-import NavBrand from './NavBrand.vue';
-import NavStats from './NavStats.vue';
+import NavBrand from '@tracker/shared/components/navbar/NavBrand.vue';
+import NavStats from '@tracker/shared/components/navbar/NavStats.vue';
 import NavUser from './NavUser.vue';
-import { useRecordsStore } from "@/stores/recordsStore";
+import { useRecordsStore } from "@tracker/shared/stores/recordsStore";
 import { storeToRefs } from "pinia";
 
 defineProps({

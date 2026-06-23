@@ -4,27 +4,19 @@ import VueDevTools from 'vite-plugin-vue-devtools'
 import { resolve } from "path";
 
 // https://vite.dev/config/
-// use '@'
 export default defineConfig({
     plugins: [
         VueDevTools(),
         vue()
     ],
-    base: '/ArcaeaPTTTracker/',
+    base: '/ArcaeaPTTTracker/admin/',
     resolve: {
         alias: {
             '@': resolve(__dirname, './src'),
             '@tracker/shared': resolve(__dirname, '../../packages/shared/src')
         },
     },
-    build: {
-        rollupOptions: {
-            input: {
-                main: resolve(__dirname, 'index.html')
-            }
-        }
+    server: {
+        port: 5175
     }
-
 })
-
-

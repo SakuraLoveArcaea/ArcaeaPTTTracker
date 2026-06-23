@@ -24,29 +24,19 @@
     <UserSettingsDialog v-model:visible="showSettingsDialog" />
 
     <!-- 更新日誌對話框 -->
-    <Dialog
-        v-model:visible="showChangelogDialog"
-        header="更新日誌"
-        modal
-        :style="{ width: '90vw', maxWidth: '600px' }"
-        dismissableMask
-    >
-        <ChangelogPanel />
-    </Dialog>
+    <ChangelogDialog v-model:visible="showChangelogDialog" />
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import Avatar from 'primevue/avatar';
 import Menu from 'primevue/menu';
-import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
-import { useAuthStore } from '@/stores/authStore';
-import { useRecordsStore } from '@/stores/recordsStore';
+import { useAuthStore } from '@tracker/shared/stores/authStore';
+import { useRecordsStore } from '@tracker/shared/stores/recordsStore';
 import { storeToRefs } from 'pinia';
-import UserSettingsDialog from '@/components/dialogs/UserSettingsDialog.vue';
-import ChangelogPanel from '@/components/dashboard/ChangelogPanel.vue';
+import { UserSettingsDialog, ChangelogDialog } from '@tracker/shared/components/dialogs';
 
 const props = defineProps({
     forceLogout: {
