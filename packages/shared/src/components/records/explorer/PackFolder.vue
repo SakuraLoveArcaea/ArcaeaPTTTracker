@@ -62,3 +62,6 @@ const emit = defineEmits([
     'add-record-diff'
 ]);
 </script>
+
+<style scoped lang="scss">
+</style>

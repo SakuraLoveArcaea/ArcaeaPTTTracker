@@ -32,3 +32,6 @@ defineProps<{
 
 const emit = defineEmits(['toggle-subversion', 'add-record', 'add-record-diff', 'toggle-details']);
 </script>
+
+<style scoped lang="scss">
+</style>
