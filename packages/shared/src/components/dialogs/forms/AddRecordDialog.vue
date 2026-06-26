@@ -115,6 +115,7 @@ import Button from 'primevue/button';
 import { debounce } from 'lodash';
 import { Difficulty } from "@tracker/shared/utils/record";
 import { useUIStore } from "@tracker/shared/stores/uiStore";
+import { useRecordsStore } from "@tracker/shared/stores/recordsStore";
 import { fetchAllSongs, searchSongs } from "@tracker/shared/utils/songDatabase";
 
 const visible = defineModel('visible', { type: Boolean, default: false });
@@ -203,6 +204,8 @@ watch(visible, async (newVal) => {
                     form.value.constant = targetSong.constants[targetDiff];
                 }
                 
+                syncScoreWithDatabase();
+                
                 UIStore.prefilledSong = null;
                 UIStore.prefilledDifficulty = null;
             } else {
@@ -290,6 +293,8 @@ const selectSong = async (song: any) => {
         form.value.constant = song.constants[defaultDiff];
     }
 
+    syncScoreWithDatabase();
+
     // 等待 Vue 更新 DOM 後，自動 Focus 到分數欄位 (不管是點擊還是快捷鍵都會觸發)
     await nextTick();
     if (scoreInput.value) {
@@ -343,6 +348,20 @@ const onDifficultyChange = () => {
         if (c !== undefined) {
             form.value.constant = c;
         }
+    }
+    syncScoreWithDatabase();
+};
+
+const syncScoreWithDatabase = () => {
+    if (UIStore.editingRecord) return;
+    const recordsStore = useRecordsStore();
+    const existing = recordsStore.records.find(
+        r => r.title === form.value.title && r.difficulty === form.value.difficulty
+    );
+    if (existing) {
+        form.value.score = existing.score;
+    } else {
+        form.value.score = 0;
     }
 };
 
