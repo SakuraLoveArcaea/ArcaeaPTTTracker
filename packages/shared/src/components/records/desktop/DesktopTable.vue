@@ -32,13 +32,13 @@
                 <template #header>
                     <span class="header">#</span>
                 </template>
-                <template #body="{ data, index }">
+                <template #body="{ data }">
                     <Button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績" variant="text" severity="secondary">
-                        <span class="rank-text">{{ index < 30 ? index + 1 : '-' }}</span>
+                        <span class="rank-text">{{ getRealRankIndex(data) >= 0 && getRealRankIndex(data) < 30 ? getRealRankIndex(data) + 1 : '-' }}</span>
                         <i class="pi pi-trash delete-icon"></i>
                     </Button>
-                    <span v-else class="body plain-rank-text" :class="{ 'top-three': index < 3 }">
-                        {{ index < 30 ? index + 1 : '-' }}
+                    <span v-else class="body plain-rank-text" :class="{ 'top-three': getRealRankIndex(data) >= 0 && getRealRankIndex(data) < 3 }">
+                        {{ getRealRankIndex(data) >= 0 && getRealRankIndex(data) < 30 ? getRealRankIndex(data) + 1 : '-' }}
                     </span>
                 </template>
             </Column>
@@ -232,6 +232,10 @@ import DesktopActions from "./DesktopActions.vue";
 const UIStore = useUIStore();
 const recordsStore = useRecordsStore();
 const confirm = useConfirm();
+
+const getRealRankIndex = (record: Record) => {
+    return recordsStore.records.findIndex(r => r.id === record.id);
+};
 
 const props = defineProps({
     records: {

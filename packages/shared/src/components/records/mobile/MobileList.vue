@@ -23,10 +23,10 @@
         <div v-else class="cards-wrapper">
             <!-- 將每一張卡片封裝為獨立子組件 -->
             <MobileCard
-                v-for="(record, index) in records"
+                v-for="record in records"
                 :key="record.id"
                 :record="record"
-                :index="index"
+                :index="getRealRankIndex(record)"
                 :is-expanded="expandedRecordId === record.id"
                 :editable="editable"
                 :show-fading="showFading"
@@ -108,6 +108,10 @@ const emit = defineEmits<{
 
 const UIStore = useUIStore();
 const recordsStore = useRecordsStore();
+
+const getRealRankIndex = (record: Record) => {
+    return recordsStore.records.findIndex(r => r.id === record.id);
+};
 
 const expandedRecordId = ref<string | null>(null);
 const rankMenu = ref<any>(null);

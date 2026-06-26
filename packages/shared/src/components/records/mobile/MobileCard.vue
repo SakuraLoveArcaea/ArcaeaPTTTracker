@@ -21,7 +21,7 @@
             >
                 <!-- 左上角小排行數字 -->
                 <span class="card-rank-badge">
-                    #{{ index < 30 ? index + 1 : '-' }}
+                    #{{ index >= 0 && index < 30 ? index + 1 : '-' }}
                 </span>
 
                 <!-- 已連結符號 (右下角) -->
