@@ -17,11 +17,27 @@
                 點擊儲存格直接編輯，按 <b>Enter</b> 儲存，按 <b>Esc</b> 取消。點擊最左側的 <b>排名 (#)</b> 可刪除紀錄。使用 <b>Cmd + K</b> 可喚醒快速錄入。
             </span>
         </div>
+ 
+        <!-- 搜尋欄 -->
+        <div class="search-bar-container">
+            <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <InputText
+                    v-model="searchQuery"
+                    placeholder="搜尋曲名、定數或難度 (例如: 風暴, 10.5, BYD)"
+                    class="search-input"
+                    fluid
+                />
+                <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''" type="button">
+                    <i class="pi pi-times"></i>
+                </button>
+            </div>
+        </div>
 
         <!-- 可複用的成績表格 (首頁設定為可編輯、可刪除，並接聽來自內部元件的操作事件) -->
         <div class="table-wrapper">
             <RecordsDispatcher
-                :records="records"
+                :records="filteredRecords"
                 :isLoading="isLoading"
                 :setting="{ logBase: 2, baseHue: 142, maxLevels: 7}"
                 :editable="true"
@@ -48,8 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import { storeToRefs } from "pinia";
+import InputText from "primevue/inputtext";
 
 import RecordsDispatcher from "./RecordsDispatcher.vue";
 import { MergeDataDialog } from '@tracker/shared/components/dialogs';
@@ -71,6 +88,26 @@ const { currentUser } = storeToRefs(authStore);
 const { records, isLoading } = storeToRefs(recordsStore);
 const { recordToDelete } = storeToRefs(recordsStore);
 const { deleteRecord, onExportRecordsToJson, onAddRecordForm, onUpdateFromTable } = recordsStore;
+
+const searchQuery = ref("");
+
+const filteredRecords = computed(() => {
+    const query = searchQuery.value.trim().toLowerCase();
+    if (!query) return records.value;
+
+    const queryNum = parseFloat(query);
+    const isNum = !isNaN(queryNum);
+
+    return records.value.filter(r => {
+        const matchTitle = r.title.toLowerCase().includes(query);
+        const matchDifficulty = r.difficulty.toLowerCase().includes(query);
+        let matchConstant = false;
+        if (isNum) {
+            matchConstant = r.constant.toString().includes(query) || r.constant === queryNum;
+        }
+        return matchTitle || matchDifficulty || matchConstant;
+    });
+});
 
 const onDelete = (record: Record) => {
     confirm.require({
@@ -292,6 +329,64 @@ const handleImportData = async ({ data, overwrite, clearAll }: { data: any[], ov
       b {
         color: #0f172a;
       }
+    }
+  }
+}
+
+.search-bar-container {
+  width: 100%;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .search-input {
+    padding-left: 2.25rem;
+    padding-right: 2.25rem;
+    width: 100%;
+  }
+
+  .clear-btn {
+    position: absolute;
+    right: 0.75rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+    }
+  }
+}
+
+:root:not(.p-dark) {
+  .search-input-wrapper {
+    .search-icon, .clear-btn {
+      color: #94a3b8;
+    }
+    .clear-btn:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      color: #0f172a;
     }
   }
 }
