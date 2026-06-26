@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
-import { Record } from "@tracker/shared/utils/record";
+import { Record, Difficulty } from "@tracker/shared/utils/record";
 import { useMediaQuery } from "@vueuse/core";
 
 export const useUIStore = defineStore("UI", () => {
@@ -9,6 +9,8 @@ export const useUIStore = defineStore("UI", () => {
     const isAddDialogOpen = ref(false);
     const isImportDialogOpen = ref(false);
     const editingRecord = ref<Record | null>(null);
+    const prefilledSong = ref<any | null>(null);
+    const prefilledDifficulty = ref<Difficulty | null>(null);
     
     // 行動版圖表跳轉與定位狀態
     const activeTab = ref('table');
@@ -25,6 +27,10 @@ export const useUIStore = defineStore("UI", () => {
 
     const useExperimentalPttEstimation = ref(false);
     const pttEstimationStartPoint = ref<string>('9500000'); // '9500000' | '9800000'
+
+    // 曲包瀏覽器設定
+    const showPstPrs = ref(true);
+    const showScoresAboveBadges = ref(true);
 
     // 安全地在 Store 初始化時獲取 Toast 實例 (Pinia Store 通常在元件的 setup 階段被第一次實例化)
     let toast: any = null;
@@ -73,6 +79,12 @@ export const useUIStore = defineStore("UI", () => {
 
         const savedPttStart = localStorage.getItem('arcaea_ptt_estimation_start_point');
         pttEstimationStartPoint.value = (savedPttStart === '9500000' || savedPttStart === '9800000') ? savedPttStart : '9500000';
+
+        const savedShowPstPrs = localStorage.getItem('arcaea_explorer_show_pst_prs');
+        showPstPrs.value = savedShowPstPrs !== 'false';
+
+        const savedShowScores = localStorage.getItem('arcaea_explorer_show_scores_above_badges');
+        showScoresAboveBadges.value = savedShowScores !== 'false';
     };
 
     // 切換顏色主題
@@ -101,6 +113,8 @@ export const useUIStore = defineStore("UI", () => {
         isAddDialogOpen,
         isImportDialogOpen,
         editingRecord,
+        prefilledSong,
+        prefilledDifficulty,
         activeTab,
         expandedRecordId,
         highlightedRecordId,
@@ -113,6 +127,8 @@ export const useUIStore = defineStore("UI", () => {
         toggleExperimental,
         useExperimentalPttEstimation,
         pttEstimationStartPoint,
+        showPstPrs,
+        showScoresAboveBadges,
         isMobile
     };
 });

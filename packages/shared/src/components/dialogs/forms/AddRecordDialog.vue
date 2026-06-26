@@ -170,7 +170,7 @@ const selectedSongData = ref<any>(null);
 // const splitScore = ref({ part1: null, part2: null });
 
 // Watch visible state to reset form or prefill edit data
-watch(visible, (newVal) => {
+watch(visible, async (newVal) => {
     if (newVal) {
         if (UIStore.editingRecord) {
             // 編輯模式：從 editingRecord 帶入資料
@@ -192,7 +192,22 @@ watch(visible, (newVal) => {
             }
         } else {
             // 新增模式：重置表單
-            resetForm(true);
+            if (UIStore.prefilledSong) {
+                const targetSong = UIStore.prefilledSong;
+                const targetDiff = UIStore.prefilledDifficulty;
+                
+                await selectSong(targetSong);
+                
+                if (targetDiff && targetSong.constants && targetSong.constants[targetDiff] !== undefined) {
+                    form.value.difficulty = targetDiff;
+                    form.value.constant = targetSong.constants[targetDiff];
+                }
+                
+                UIStore.prefilledSong = null;
+                UIStore.prefilledDifficulty = null;
+            } else {
+                resetForm(true);
+            }
         }
     }
 });

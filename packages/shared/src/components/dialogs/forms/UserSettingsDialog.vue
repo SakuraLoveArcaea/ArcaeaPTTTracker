@@ -55,6 +55,30 @@
                     class="start-point-select"
                 />
             </div>
+
+            <div class="settings-divider"></div>
+
+            <!-- 曲包瀏覽：顯示 PST, PRS -->
+            <div class="settings-row">
+                <span class="settings-label">
+                    <i class="pi pi-eye settings-icon"></i>顯示 PST、PRS 難度
+                </span>
+                <ToggleSwitch
+                    v-model="UIStore.showPstPrs"
+                    @change="onShowPstPrsChange"
+                />
+            </div>
+
+            <!-- 曲包瀏覽：顯示按鍵上方成績 -->
+            <div class="settings-row">
+                <span class="settings-label">
+                    <i class="pi pi-percentage settings-icon"></i>按鍵上方顯示歷史成績
+                </span>
+                <ToggleSwitch
+                    v-model="UIStore.showScoresAboveBadges"
+                    @change="onShowScoresAboveBadgesChange"
+                />
+            </div>
         </div>
         <template #footer>
             <Button label="關閉" outlined severity="secondary" @click="visible = false" />
@@ -101,6 +125,14 @@ const startPointOptions = ref([
 
 const onStartPointChange = () => {
     localStorage.setItem('arcaea_ptt_estimation_start_point', UIStore.pttEstimationStartPoint);
+};
+
+const onShowPstPrsChange = () => {
+    localStorage.setItem('arcaea_explorer_show_pst_prs', String(UIStore.showPstPrs));
+};
+
+const onShowScoresAboveBadgesChange = () => {
+    localStorage.setItem('arcaea_explorer_show_scores_above_badges', String(UIStore.showScoresAboveBadges));
 };
 
 
@@ -154,5 +186,10 @@ watch(() => UIStore.isDarkTheme, (newVal) => {
 
 .start-point-select {
   width: 135px;
+}
+
+.settings-divider {
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  margin: 0.25rem 0;
 }
 </style>

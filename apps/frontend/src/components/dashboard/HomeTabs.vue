@@ -3,13 +3,20 @@
         <Tabs v-model:value="UIStore.activeTab">
             <TabList class="home-tablist">
                 <Tab value="table">
-                    <i class="pi pi-table tab-icon"></i>成績表格
+                    <i class="pi pi-table tab-icon"></i>
+                    <span class="tab-text">成績表格</span>
                 </Tab>
                 <Tab value="chart">
-                    <i class="pi pi-chart-line tab-icon"></i>B30 分佈圖表
+                    <i class="pi pi-chart-line tab-icon"></i>
+                    <span class="tab-text">B30 分佈圖表</span>
                 </Tab>
                 <Tab value="recent">
-                    <i class="pi pi-history tab-icon"></i>最近成績
+                    <i class="pi pi-history tab-icon"></i>
+                    <span class="tab-text">最近成績</span>
+                </Tab>
+                <Tab value="explore">
+                    <i class="pi pi-folder tab-icon"></i>
+                    <span class="tab-text">曲包瀏覽</span>
                 </Tab>
             </TabList>
             <TabPanels class="home-tabpanels">
@@ -26,6 +33,9 @@
                         <p>我們正在開發「最近成績 (Recent Scores)」功能，未來此處將呈現您最近遊玩的成績與潛力值變動歷程！</p>
                     </div>
                 </TabPanel>
+                <TabPanel value="explore">
+                    <SongExplorer />
+                </TabPanel>
             </TabPanels>
         </Tabs>
     </div>
@@ -39,6 +49,7 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import RecordsDashboard from "@tracker/shared/components/records/RecordsDashboard.vue";
 import Best30Charts from "@tracker/shared/components/charts/Best30Charts.vue";
+import SongExplorer from "@tracker/shared/components/records/SongExplorer.vue";
 import { useUIStore } from "@tracker/shared/stores/uiStore";
 
 const UIStore = useUIStore();
@@ -58,6 +69,34 @@ const UIStore = useUIStore();
   border-bottom: 1px solid var(--border-color) !important;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
+
+  :deep(.p-tablist-tab-list) {
+    display: flex;
+    width: 100%;
+  }
+
+  :deep(.p-tab) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.75rem 1rem !important;
+
+    @media (max-width: 768px) {
+      padding: 0.75rem 0.5rem !important;
+      flex: 1; /* 手機版均分寬度 */
+    }
+  }
+}
+
+.tab-icon {
+  margin: 0 !important;
+}
+
+.tab-text {
+  @media (max-width: 768px) {
+    display: none; /* 手機版隱藏文字，僅顯示圖示 */
+  }
 }
 
 .home-tabpanels {
