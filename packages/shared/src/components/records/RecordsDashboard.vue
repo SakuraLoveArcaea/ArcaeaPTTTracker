@@ -18,25 +18,10 @@
             </span>
         </div>
  
-        <!-- 搜尋欄 -->
-        <div class="search-bar-container">
-            <div class="search-input-wrapper">
-                <i class="pi pi-search search-icon"></i>
-                <InputText
-                    v-model="searchQuery"
-                    placeholder="搜尋曲名、定數或難度 (例如: 風暴, 10.5, BYD)"
-                    class="search-input"
-                    fluid
-                />
-                <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''" type="button">
-                    <i class="pi pi-times"></i>
-                </button>
-            </div>
-        </div>
-
         <!-- 可複用的成績表格 (首頁設定為可編輯、可刪除，並接聽來自內部元件的操作事件) -->
         <div class="table-wrapper">
             <RecordsDispatcher
+                v-model:search-query="searchQuery"
                 :records="filteredRecords"
                 :isLoading="isLoading"
                 :setting="{ logBase: 2, baseHue: 142, maxLevels: 7}"
@@ -266,7 +251,7 @@ const handleImportData = async ({ data, overwrite, clearAll }: { data: any[], ov
 }
 
 .panel-header-row {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
 }
 
 .panel-title {

@@ -1,5 +1,21 @@
 <template>
     <div class="records-mobile-list-container">
+        <!-- 手機板搜尋框 -->
+        <div class="search-bar-container">
+            <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <InputText
+                    v-model="searchQuery"
+                    placeholder="搜尋曲名、定數..."
+                    class="search-input"
+                    fluid
+                />
+                <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''" type="button">
+                    <i class="pi pi-times"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- 點擊排行管理的彈出選單 -->
         <Menu ref="rankMenu" :model="menuItems" :popup="true">
             <template #item="{ item }">
@@ -71,9 +87,12 @@ import { Record } from '@tracker/shared/utils/record';
 import Menu from 'primevue/menu';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
 import { useRecordsStore } from '@tracker/shared/stores/recordsStore';
 import MobileCard from './MobileCard.vue';
+
+const searchQuery = defineModel('searchQuery', { type: String, default: '' });
 
 const props = defineProps({
     records: {
@@ -214,6 +233,65 @@ const menuItems = computed(() => {
 .records-mobile-list-container {
     width: 100%;
     padding-bottom: 5.5rem; /* 預留空間，確保最後一筆紀錄能被推高至 FAB 上方，不被遮擋 */
+}
+
+.search-bar-container {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: #64748b;
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+
+    .search-input {
+        padding-left: 2.25rem;
+        padding-right: 2.25rem;
+        width: 100%;
+    }
+
+    .clear-btn {
+        position: absolute;
+        right: 0.75rem;
+        background: transparent;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s, color 0.2s;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #f8fafc;
+        }
+    }
+}
+
+:root:not(.p-dark) {
+    .search-input-wrapper {
+        .search-icon, .clear-btn {
+            color: #94a3b8;
+        }
+        .clear-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #0f172a;
+        }
+    }
 }
 
 .loading-state, .empty-state {

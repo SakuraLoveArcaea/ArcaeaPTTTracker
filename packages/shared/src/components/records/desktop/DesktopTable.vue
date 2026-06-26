@@ -1,7 +1,20 @@
 <template>
     <div class="records-desktop-table-container">
-        <!-- 頂部操作按鈕 (新增/匯入/匯出) -->
+        <!-- 頂部操作按鈕 (新增/匯入/匯出) 與左側搜尋框 -->
         <div class="actions-wrapper">
+            <div class="search-bar-container">
+                <div class="search-input-wrapper">
+                    <i class="pi pi-search search-icon"></i>
+                    <InputText
+                        v-model="searchQuery"
+                        placeholder="搜尋曲名、定數..."
+                        class="search-input"
+                    />
+                    <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''" type="button">
+                        <i class="pi pi-times"></i>
+                    </button>
+                </div>
+            </div>
             <DesktopActions
                 @request-add="(form) => $emit('request-add', form)"
                 @request-import="(p) => $emit('request-import', p)"
@@ -232,6 +245,8 @@ import DesktopActions from "./DesktopActions.vue";
 const UIStore = useUIStore();
 const recordsStore = useRecordsStore();
 const confirm = useConfirm();
+
+const searchQuery = defineModel('searchQuery', { type: String, default: '' });
 
 const getRealRankIndex = (record: Record) => {
     return recordsStore.records.findIndex(r => r.id === record.id);
@@ -536,6 +551,68 @@ const handleUnlinkCurrentSong = () => {
 
 .actions-wrapper {
   width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.search-bar-container {
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .search-input {
+    padding-left: 2.25rem;
+    padding-right: 2.25rem;
+    width: 100%;
+  }
+
+  .clear-btn {
+    position: absolute;
+    right: 0.75rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+    }
+  }
+}
+
+:root:not(.p-dark) {
+  .search-input-wrapper {
+    .search-icon, .clear-btn {
+      color: #94a3b8;
+    }
+    .clear-btn:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      color: #0f172a;
+    }
+  }
 }
 
 .empty-state {

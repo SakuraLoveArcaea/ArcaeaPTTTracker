@@ -4,6 +4,7 @@
         <component
             :is="activeComponent"
             v-bind="$props"
+            v-model:search-query="searchQuery"
             @request-update="(p) => $emit('request-update', p)"
             @request-delete="(r) => $emit('request-delete', r)"
             @request-add="(form) => $emit('request-add', form)"
@@ -17,6 +18,8 @@
 import { type PropType, defineAsyncComponent, computed } from "vue";
 import { type Record } from "@tracker/shared/utils/record";
 import { useUIStore } from "@tracker/shared/stores/uiStore";
+
+const searchQuery = defineModel('searchQuery', { type: String, default: '' });
 
 const props = defineProps({
     records: {
