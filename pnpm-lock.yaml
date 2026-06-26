@@ -220,6 +220,9 @@ importers:
       firebase:
         specifier: ^12.10.0
         version: 12.11.0
+      fuse.js:
+        specifier: ^7.1.0
+        version: 7.1.0
       highcharts:
         specifier: ^12.5.0
         version: 12.5.0

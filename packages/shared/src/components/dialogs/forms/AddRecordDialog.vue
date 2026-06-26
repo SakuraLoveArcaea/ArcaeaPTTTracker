@@ -113,11 +113,9 @@ import Select from 'primevue/select';
 import InputNumber from 'primevue/inputnumber';
 import Button from 'primevue/button';
 import { debounce } from 'lodash';
-import { algoliasearch } from 'algoliasearch';
-import { Difficulty } from "../../utils/record";
+import { Difficulty } from "@tracker/shared/utils/record";
 import { useUIStore } from "@tracker/shared/stores/uiStore";
-
-const searchClient = algoliasearch('UIKBGM1GZF', 'eb80677b06c782de84ff19151fe82ba0');
+import { fetchAllSongs, searchSongs } from "@tracker/shared/utils/songDatabase";
 
 const visible = defineModel('visible', { type: Boolean, default: false });
 const emit = defineEmits(['save']);
@@ -135,6 +133,8 @@ onMounted(() => {
     mediaQuery = window.matchMedia('(max-width: 768px)');
     isMobile.value = mediaQuery.matches;
     mediaQuery.addEventListener('change', handleMediaQuery);
+    // 預先載入所有曲目
+    fetchAllSongs().catch(err => console.error('預載入曲目失敗:', err));
 });
 
 onUnmounted(() => {
@@ -205,32 +205,16 @@ const performSearch = async () => {
     }
 
     try {
-        const { results } = await searchClient.search({
-            requests: [
-                {
-                    indexName: 'arcaea_constants_ver_6_14_11',
-                    query: searchQuery.value,
-                    hitsPerPage: 8,
-                },
-            ],
-        });
-        // The `results` array from a multiple query can contain different types of responses.
-        // We need a type guard to ensure we are dealing with a standard search response that contains 'hits'.
-        const searchResult = results[0];
-        if (searchResult && 'hits' in searchResult) {
-            filteredSongs.value = searchResult.hits;
-        } else {
-            filteredSongs.value = [];
-        }
+        filteredSongs.value = await searchSongs(searchQuery.value);
         showSuggestions.value = filteredSongs.value.length > 0;
     } catch (error) {
-        console.error('Algolia 搜尋失敗:', error);
+        console.error('搜尋失敗:', error);
         filteredSongs.value = [];
         showSuggestions.value = false;
     }
 };
 
-const debouncedSearch = debounce(performSearch, 300);
+const debouncedSearch = debounce(performSearch, 150);
 
 const onSearchInput = () => {
     form.value.title = searchQuery.value;
