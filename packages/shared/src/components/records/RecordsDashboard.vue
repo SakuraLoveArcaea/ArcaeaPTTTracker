@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue";
 import { storeToRefs } from "pinia";
+import { debounce } from "lodash";
 import InputText from "primevue/inputtext";
 
 import RecordsDispatcher from "./RecordsDispatcher.vue";
@@ -90,9 +91,23 @@ const { recordToDelete } = storeToRefs(recordsStore);
 const { deleteRecord, onExportRecordsToJson, onAddRecordForm, onUpdateFromTable } = recordsStore;
 
 const searchQuery = ref("");
+const debouncedQuery = ref("");
+
+const updateDebouncedQuery = debounce((val: string) => {
+    debouncedQuery.value = val;
+}, 150);
+
+watch(searchQuery, (newVal) => {
+    if (!newVal.trim()) {
+        debouncedQuery.value = "";
+        updateDebouncedQuery.cancel();
+    } else {
+        updateDebouncedQuery(newVal);
+    }
+});
 
 const filteredRecords = computed(() => {
-    const query = searchQuery.value.trim().toLowerCase();
+    const query = debouncedQuery.value.trim().toLowerCase();
     if (!query) return records.value;
 
     const queryNum = parseFloat(query);

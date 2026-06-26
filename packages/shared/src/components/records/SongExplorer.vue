@@ -39,7 +39,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { debounce } from 'lodash';
 import { fetchAllSongs, Song } from '@tracker/shared/utils/songDatabase';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
 import ExplorerHeader from './explorer/ExplorerHeader.vue';
@@ -49,6 +50,20 @@ const UIStore = useUIStore();
 const allSongs = ref<Song[]>([]);
 const isLoading = ref(true);
 const packSearchQuery = ref('');
+const debouncedSearchQuery = ref('');
+
+const updateDebouncedSearch = debounce((val: string) => {
+    debouncedSearchQuery.value = val;
+}, 150);
+
+watch(packSearchQuery, (newVal) => {
+    if (!newVal.trim()) {
+        debouncedSearchQuery.value = '';
+        updateDebouncedSearch.cancel();
+    } else {
+        updateDebouncedSearch(newVal);
+    }
+});
 
 const activePack = ref<string | null>(null);
 const activeSongId = ref<string | null>(null);
@@ -115,7 +130,7 @@ const matchSong = (song: Song, query: string): boolean => {
 
 // 搜尋過濾後的曲包與曲目對照表
 const filteredGroupedSongs = computed(() => {
-    const query = packSearchQuery.value.trim().toLowerCase();
+    const query = debouncedSearchQuery.value.trim().toLowerCase();
     const result: Record<string, Song[]> = {};
     
     for (const [packName, songs] of Object.entries(groupedSongs.value)) {
@@ -178,7 +193,7 @@ const packLatestVersions = computed(() => {
 
 // 過濾並按照最新版本降序排列曲包名稱
 const filteredPackNames = computed(() => {
-    const query = packSearchQuery.value.trim().toLowerCase();
+    const query = debouncedSearchQuery.value.trim().toLowerCase();
     const packs = Object.keys(filteredGroupedSongs.value);
     
     return packs.sort((a, b) => {

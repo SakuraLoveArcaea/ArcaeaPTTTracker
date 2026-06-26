@@ -136,7 +136,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { debounce } from 'lodash';
 import Tree from 'primevue/tree';
 import { fetchAllSongs, Song } from '@tracker/shared/utils/songDatabase';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
@@ -145,6 +146,20 @@ const UIStore = useUIStore();
 const allSongs = ref<Song[]>([]);
 const isLoading = ref(true);
 const packSearchQuery = ref('');
+const debouncedSearchQuery = ref('');
+
+const updateDebouncedSearch = debounce((val: string) => {
+    debouncedSearchQuery.value = val;
+}, 150);
+
+watch(packSearchQuery, (newVal) => {
+    if (!newVal.trim()) {
+        debouncedSearchQuery.value = '';
+        updateDebouncedSearch.cancel();
+    } else {
+        updateDebouncedSearch(newVal);
+    }
+});
 
 const activeSongId = ref<string | null>(null);
 const expandedKeys = ref<Record<string, boolean>>({});
@@ -236,7 +251,7 @@ const packLatestVersions = computed(() => {
 
 // 過濾並按照最新版本降序排列曲包名稱
 const filteredPackNames = computed(() => {
-    const query = packSearchQuery.value.trim().toLowerCase();
+    const query = debouncedSearchQuery.value.trim().toLowerCase();
     const packs = Object.keys(groupedSongs.value);
     
     const filtered = query 
