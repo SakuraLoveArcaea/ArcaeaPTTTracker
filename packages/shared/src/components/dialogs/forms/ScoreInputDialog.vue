@@ -215,11 +215,17 @@ const pressClear = () => {
     }
 };
 
-// 快捷 PM 按鈕 (切換到 PM 模式，前綴設為 1000，並開啟 4 位尾數編輯)
+// 快捷 PM 按鈕 (切換到 PM 模式，前綴設為 1000，並開啟 4 位尾數編輯；若已在 PM 模式，則撤回並變回 0 分一般模式)
 const pressPmShortcut = () => {
-    isPmMode.value = true;
-    digitsArray.value = ['0', '0', '0', '0'];
-    cursorIndex.value = 0;
+    if (isPmMode.value) {
+        isPmMode.value = false;
+        digitsArray.value = ['0', '0', '0', '0', '0', '0', '0'];
+        cursorIndex.value = 0;
+    } else {
+        isPmMode.value = true;
+        digitsArray.value = ['0', '0', '0', '0'];
+        cursorIndex.value = 0;
+    }
 };
 
 const onCancel = () => {
