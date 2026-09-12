@@ -216,7 +216,16 @@ const handleImportData = async ({ data, overwrite, clearAll }: { data: any[], ov
 
             if (!targetId) targetId = 'imp_' + Math.random().toString(36).substring(2, 11);
 
-            const cleanRecord: Record = { id: targetId, title, difficulty, constant: parsedConstant, score: parsedScore, playPtt: autoCalculatedPtt };
+            const cleanRecord: Record = {
+                id: targetId,
+                title,
+                difficulty,
+                constant: parsedConstant,
+                score: parsedScore,
+                playPtt: autoCalculatedPtt,
+                lastUpdate: item.lastUpdate !== undefined ? Number(item.lastUpdate) : Date.now(),
+                autoUpdate: item.autoUpdate ?? false
+            };
 
             if (currentUser.value) await addRecordDataByRecord(currentUser.value, cleanRecord);
 

@@ -5,7 +5,7 @@
                 <i class="pi pi-chart-line"></i>
             </div>
             <div class="stat-info">
-                <span class="stat-label">B30 平均值</span>
+                <span class="stat-label">{{ modeName }} 平均値</span>
                 <span class="stat-value text-gold">{{ stats.mean.toFixed(4) }}</span>
             </div>
         </div>
@@ -15,7 +15,7 @@
                 <i class="pi pi-sliders-h"></i>
             </div>
             <div class="stat-info">
-                <span class="stat-label">B30 中位數</span>
+                <span class="stat-label">{{ modeName }} 中位數</span>
                 <span class="stat-value text-emerald">{{ stats.median.toFixed(4) }}</span>
             </div>
         </div>
@@ -59,6 +59,10 @@ const props = defineProps({
     size: {
         type: String as PropType<'small' | 'large'>,
         default: 'large'
+    },
+    modeName: {
+        type: String,
+        default: 'B30'
     }
 });
 

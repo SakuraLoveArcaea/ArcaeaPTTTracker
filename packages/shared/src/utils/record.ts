@@ -1,6 +1,25 @@
 import {ref} from "vue";
 
-export type Difficulty = 'PST' | 'PRS' | 'FTR' | 'BYD' | 'ETR';
+/** 基礎三難度：所有曲目固定具備 */
+export type BaseDifficulty = 'PST' | 'PRS' | 'FTR';
+
+/** 附加/特殊難度種類 */
+export type ExtraDifficultyType = 'BYD' | 'ETR' | 'INS' | 'BYD1' | 'BYD2';
+
+/** 所有可能難度識別碼 */
+export type Difficulty = BaseDifficulty | ExtraDifficultyType;
+
+/** 各難度對應的代表色 */
+export const DIFFICULTY_COLORS: { [key in Difficulty]: string } = {
+    'PST': '#5aa1d9',
+    'PRS': '#81b144',
+    'FTR': '#a155ab',
+    'BYD': '#d63d41',
+    'ETR': '#c4a1d1',
+    'INS': '#1d4ed8', // 深藍色
+    'BYD1': '#d63d41',
+    'BYD2': '#d63d41'
+} as const;
 
 export type Record = {
     id: string;

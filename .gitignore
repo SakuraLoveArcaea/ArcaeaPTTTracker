@@ -27,3 +27,4 @@ dist-ssr
 *.sw?
 
 **/serviceAccount.json
+codebase.md

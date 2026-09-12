@@ -3,16 +3,16 @@
         <div class="stat-box b30" :title="isAdmin ? '該玩家 Best 30 最佳成績平均潛力值' : '您的 Best 30 (最佳 30 次成績) 平均潛力值'">
             <i class="pi pi-star-fill stat-icon"></i>
             <span class="label">
-                <span class="desktop-label">B30 平均：</span>
-                <span class="mobile-label">B30:</span>
+                <span class="desktop-label">{{ mainLabel }}：</span>
+                <span class="mobile-label">{{ pttMode === 'b50' ? 'B50' : 'B30' }}:</span>
             </span>
             <span class="value">{{ b30Avg.toFixed(4) }}</span>
         </div>
         <div class="stat-box r10" :title="isAdmin ? '該玩家最高單曲前 10 次成績平均值' : '您的最高單曲前 10 次成績平均值 (預估最高)'">
             <i class="pi pi-bolt stat-icon"></i>
             <span class="label">
-                <span class="desktop-label">最高 R10 平均：</span>
-                <span class="mobile-label">R10:</span>
+                <span class="desktop-label">{{ subLabel }}：</span>
+                <span class="mobile-label">{{ pttMode === 'b50' ? 'B10' : 'R10' }}:</span>
             </span>
             <span class="value">{{ r10Avg.toFixed(4) }}</span>
         </div>
@@ -35,7 +35,10 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
+import { computed } from 'vue';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
+
+const props = defineProps({
     b30Avg: {
         type: Number,
         default: 0
@@ -55,8 +58,15 @@ defineProps({
     showEmpty: {
         type: Boolean,
         default: false
+    },
+    pttMode: {
+        type: String as () => 'b30' | 'b50',
+        default: 'b50'
     }
 });
+
+const mainLabel = computed(() => getPttStrategy(props.pttMode).mainLabel);
+const subLabel = computed(() => getPttStrategy(props.pttMode).subLabel);
 </script>
 
 <style scoped lang="scss">

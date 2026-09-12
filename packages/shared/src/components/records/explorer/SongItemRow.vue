@@ -33,23 +33,11 @@
                         <DifficultyBadge
                             :difficulty="String(diff)"
                             :constant="constant"
+                            :clickable="true"
                             @click.stop="onDiffClick(String(diff), $event)"
-                            @mousedown.stop
-                            @touchstart.stop
                         />
                     </div>
                 </div>
-            </div>
-            <div class="song-action-right">
-                <button
-                    class="quick-add-btn"
-                    @click.stop="onAddClick($event)"
-                    @mousedown.stop
-                    @touchstart.stop
-                    title="快速新增成績"
-                >
-                    <i class="pi pi-plus"></i>
-                </button>
             </div>
         </div>
 

@@ -34,6 +34,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { Chart } from 'highcharts-vue';
 import { type Record } from '@tracker/shared/utils/record';
 import { calculatePlayPtt } from '@tracker/shared/utils/arcaeaRule';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
 import { storeToRefs } from 'pinia';
 
@@ -59,6 +60,9 @@ const props = defineProps({
 
 const UIStore = useUIStore();
 const { isDarkTheme } = storeToRefs(UIStore);
+
+// 根據當前 pttMode 動態取得策略與通關加成
+const strategy = computed(() => getPttStrategy(UIStore.pttMode));
 
 const currentScoreValue = computed(() => {
     const rawScore = props.record.score || 0;
@@ -88,7 +92,9 @@ const minScore = computed(() => {
 const selectedScore = ref(10000000);
 
 const selectedPlayPtt = computed(() => {
-    return calculatePlayPtt(props.record.constant, selectedScore.value);
+    const rawPtt = calculatePlayPtt(props.record.constant, selectedScore.value);
+    const bonus = strategy.value.clearBonus;
+    return Math.round((rawPtt + bonus) * 10000) / 10000;
 });
 
 const isPreviewing = computed(() => {
@@ -186,6 +192,7 @@ watch(() => props.record, () => {
 // 產生 Highcharts 預估折線數據點
 const lineData = computed(() => {
     const constant = props.record.constant;
+    const bonus = strategy.value.clearBonus;
     const start = minScore.value;
     const end = 10000000;
     const step = 1000;
@@ -194,16 +201,20 @@ const lineData = computed(() => {
     
     // 1. 產生間隔點
     for (let s = start; s <= end; s += step) {
+        const rawPtt = calculatePlayPtt(constant, s);
+        const pttVal = Math.round((rawPtt + bonus) * 10000) / 10000;
         pointsMap.set(s, {
             x: s,
-            y: calculatePlayPtt(constant, s)
+            y: pttVal
         });
     }
     // 確保包含 10000000
     if (!pointsMap.has(end)) {
+        const rawPtt = calculatePlayPtt(constant, end);
+        const pttVal = Math.round((rawPtt + bonus) * 10000) / 10000;
         pointsMap.set(end, {
             x: end,
-            y: calculatePlayPtt(constant, end)
+            y: pttVal
         });
     }
     
@@ -214,14 +225,17 @@ const lineData = computed(() => {
 // 產生獨立的當前實際成績點數據
 const actualScorePointData = computed(() => {
     const constant = props.record.constant;
+    const bonus = strategy.value.clearBonus;
     const actualScore = currentScoreValue.value;
     const start = minScore.value;
     const end = 10000000;
     
     if (actualScore >= start && actualScore <= end) {
+        const rawPtt = calculatePlayPtt(constant, actualScore);
+        const pttVal = Math.round((rawPtt + bonus) * 10000) / 10000;
         return [{
             x: actualScore,
-            y: calculatePlayPtt(constant, actualScore),
+            y: pttVal,
             marker: {
                 enabled: true,
                 radius: props.mini ? 3.5 : 4.5,

@@ -11,6 +11,7 @@
             :b30Avg="b30Avg"
             :r10Avg="r10Avg"
             :maxPtt="maxPtt"
+            :pttMode="pttMode"
         />
 
         <!-- 右側：使用者選單 -->
@@ -23,6 +24,7 @@ import NavBrand from '@tracker/shared/components/navbar/NavBrand.vue';
 import NavStats from '@tracker/shared/components/navbar/NavStats.vue';
 import NavUser from './NavUser.vue';
 import { useRecordsStore } from "@tracker/shared/stores/recordsStore";
+import { useUIStore } from "@tracker/shared/stores/uiStore";
 import { storeToRefs } from "pinia";
 
 defineProps({
@@ -33,7 +35,9 @@ defineProps({
 });
 
 const recordsStore = useRecordsStore();
+const UIStore = useUIStore();
 const { b30Avg, r10Avg, maxPtt } = storeToRefs(recordsStore);
+const { pttMode } = storeToRefs(UIStore);
 </script>
 
 <style scoped lang="scss">

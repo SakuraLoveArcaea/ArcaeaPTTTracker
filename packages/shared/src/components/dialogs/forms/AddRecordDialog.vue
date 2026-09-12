@@ -163,7 +163,7 @@ const form = ref({
 const searchQuery = ref('');
 const showSuggestions = ref(false);
 const filteredSongs = ref<any[]>([]);
-const allDifficulties: Difficulty[] = ['PST', 'PRS', 'FTR', 'BYD', 'ETR'];
+const allDifficulties: Difficulty[] = ['PST', 'PRS', 'FTR', 'ETR', 'BYD', 'INS'];
 const availableDifficulties = ref<Difficulty[]>([...allDifficulties]);
 const selectedSongData = ref<any>(null);
 
@@ -284,7 +284,8 @@ const selectSong = async (song: any) => {
         availableDifficulties.value = diffs;
 
         let defaultDiff: Difficulty = 'FTR';
-        if (diffs.includes('BYD')) defaultDiff = 'BYD';
+        if (diffs.includes('INS')) defaultDiff = 'INS';
+        else if (diffs.includes('BYD')) defaultDiff = 'BYD';
         else if (diffs.includes('ETR')) defaultDiff = 'ETR';
         else if (diffs.includes('FTR')) defaultDiff = 'FTR';
         else defaultDiff = diffs[0] || 'FTR';

@@ -4,7 +4,7 @@
         <div class="panel-header-row">
             <h3 class="panel-title">
                 <i class="pi pi-chart-line title-icon"></i>
-                Best 30 潛力值分佈
+                Best {{ pttMode.toUpperCase() === 'B50' ? '50' : '30' }} 潛力値分佈
             </h3>
         </div>
         
@@ -16,7 +16,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useUIStore } from '@tracker/shared/stores/uiStore';
 import Best30Charts from "./Best30Charts.vue";
+
+const UIStore = useUIStore();
+const pttMode = computed(() => UIStore.pttMode);
 </script>
 
 <style scoped lang="scss">

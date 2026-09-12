@@ -14,6 +14,7 @@
                 :r10Avg="userR10Avg"
                 :maxPtt="userMaxPtt"
                 :isAdmin="true"
+                :pttMode="pttMode"
                 :showEmpty="!selectedUserId || userRecords.length === 0"
             />
 
@@ -33,6 +34,12 @@
 import { computed, type PropType } from 'vue';
 import NavBrand from '@tracker/shared/components/navbar/NavBrand.vue';
 import NavStats from '@tracker/shared/components/navbar/NavStats.vue';
+import { useUIStore } from '@tracker/shared/stores/uiStore';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
+import { storeToRefs } from 'pinia';
+
+const UIStore = useUIStore();
+const { pttMode } = storeToRefs(UIStore);
 
 const props = defineProps({
     selectedUserId: {
@@ -45,27 +52,20 @@ const props = defineProps({
     }
 });
 
-// 計算該玩家的 B30 平均
+// 依當前策略計算該玩家的整體 PTT
 const userB30Avg = computed(() => {
-    if (!props.userRecords || props.userRecords.length === 0) return 0;
-    const sorted = [...props.userRecords].sort((a, b) => b.playPtt - a.playPtt);
-    const b30 = sorted.slice(0, 30);
-    const sum = b30.reduce((acc, cur) => acc + (Number(cur.playPtt) || 0), 0);
-    return sum / 30;
+    const strategy = getPttStrategy(UIStore.pttMode);
+    return strategy.calcOverallPtt(props.userRecords || []).mainAvg;
 });
 
-// 計算該玩家的 R10 平均 (以最高單曲前 10 次成績)
 const userR10Avg = computed(() => {
-    if (!props.userRecords || props.userRecords.length === 0) return 0;
-    const sorted = [...props.userRecords].sort((a, b) => b.playPtt - a.playPtt);
-    const b10 = sorted.slice(0, 10);
-    const sum = b10.reduce((acc, cur) => acc + (Number(cur.playPtt) || 0), 0);
-    return sum / (b10.length === 10 ? 10 : b10.length);
+    const strategy = getPttStrategy(UIStore.pttMode);
+    return strategy.calcOverallPtt(props.userRecords || []).subAvg;
 });
 
-// 計算該玩家的預估最高 PTT
 const userMaxPtt = computed(() => {
-    return (userB30Avg.value * 30 + userR10Avg.value * 10) / 40;
+    const strategy = getPttStrategy(UIStore.pttMode);
+    return strategy.calcOverallPtt(props.userRecords || []).overall;
 });
 </script>
 

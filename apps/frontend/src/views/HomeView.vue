@@ -1,5 +1,23 @@
 <template>
-    <Toast />
+    <Toast position="top-right">
+        <template #message="{ message }">
+            <div 
+                class="toast-message-body" 
+                :class="{ 'clickable': !!message.data?.recordId }"
+                @click="handleToastClick(message)"
+            >
+                <span :class="[getToastIcon(message.severity), 'p-toast-message-icon']" />
+                <div class="toast-text-group">
+                    <span class="p-toast-summary">{{ message.summary }}</span>
+                    <div class="p-toast-detail">{{ message.detail }}</div>
+                    <div v-if="message.data?.recordId" class="toast-click-hint">
+                        <i class="pi pi-arrow-right"></i>
+                        <span>點擊跳轉至成績卡片</span>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </Toast>
     <ConfirmDialog />
     <div class="home-dashboard-wrapper">
         <!-- 頂部導覽列 -->
@@ -110,6 +128,27 @@ const handleScoreSave = (payload: { id: string, score: number }) => {
     }
 }
 
+const handleToastClick = (message: any) => {
+    if (message?.data?.recordId) {
+        UIStore.jumpToRecord(message.data.recordId);
+    }
+};
+
+const getToastIcon = (severity?: string) => {
+    switch (severity) {
+        case 'success':
+            return 'pi pi-check-circle';
+        case 'info':
+            return 'pi pi-info-circle';
+        case 'warn':
+            return 'pi pi-exclamation-triangle';
+        case 'error':
+            return 'pi pi-times-circle';
+        default:
+            return 'pi pi-info-circle';
+    }
+};
+
 onMounted(() => {
     UIStore.initTheme();
     UIStore.activeTab = 'table'; // 進入頁面預設在成績表格 Tab
@@ -122,6 +161,56 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
+:deep(.p-toast-message) {
+  .toast-message-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+
+    &.clickable {
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+
+      &:hover {
+        transform: translateX(-3px);
+        opacity: 0.95;
+      }
+    }
+
+    .toast-text-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .toast-click-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--p-primary-color, #3b82f6);
+      margin-top: 0.35rem;
+      background: rgba(59, 130, 246, 0.12);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      width: fit-content;
+
+      i {
+        font-size: 0.7rem;
+        transition: transform 0.2s ease;
+      }
+    }
+
+    &.clickable:hover .toast-click-hint i {
+      transform: translateX(2px);
+    }
+  }
+}
+
 .home-dashboard-wrapper {
   display: flex;
   flex-direction: column;
