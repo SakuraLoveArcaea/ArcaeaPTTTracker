@@ -350,6 +350,7 @@ const getDiffClass = (diff: string | number) => {
     if (d.includes('FTR')) return 'diff-ftr';
     if (d.includes('BYD')) return 'diff-byd';
     if (d.includes('ETR')) return 'diff-etr';
+    if (d.includes('INS')) return 'diff-ins';
     return '';
 };
 
@@ -760,11 +761,13 @@ const handleRowClick = (e: Event, song: Song) => {
     }
 }
 
+.diff-all { background-color: #475569; }
 .diff-pst { background-color: #5aa1d9; }
 .diff-prs { background-color: #81b144; }
 .diff-ftr { background-color: #a155ab; }
-.diff-byd { background-color: #d63d41; }
 .diff-etr { background-color: #c4a1d1; }
+.diff-byd { background-color: #d63d41; }
+.diff-ins { background-color: #1d4ed8; }
 
 /* 快速新增按鈕 */
 .song-action-right {

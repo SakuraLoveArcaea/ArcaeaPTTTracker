@@ -21,7 +21,7 @@
             >
                 <!-- 左上角小排行數字 -->
                 <span class="card-rank-badge">
-                    #{{ index >= 0 && index < 30 ? index + 1 : '-' }}
+                    #{{ index + 1 }}
                 </span>
 
                 <!-- 已連結符號 (右下角) -->
@@ -41,7 +41,7 @@
                     </div>
                     <div class="header-right">
                         <div class="ptt-score-group">
-                            <span class="play-ptt">{{ record.playPtt.toFixed(4) }}</span>
+                            <span class="play-ptt">{{ getPttStrategy(UIStore.pttMode).effectivePtt(record).toFixed(4) }}</span>
                             <span class="score-text">{{ formatScore(record.score) }}</span>
                         </div>
                         <i class="pi chevron-icon" :class="isExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
@@ -117,11 +117,12 @@
 
 <script setup lang="ts">
 import { ref, PropType } from 'vue';
-import { Record, Difficulty } from '@tracker/shared/utils/record';
+import { Record, Difficulty, DIFFICULTY_COLORS } from '@tracker/shared/utils/record';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
 import { useLongPress } from '@tracker/shared/utils/useLongPress';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
 import MobileInlineChart from './MobileInlineChart.vue';
 
 const props = defineProps({
@@ -158,13 +159,7 @@ const emit = defineEmits<{
 
 const UIStore = useUIStore();
 
-const diffColors: Record<Difficulty, string> = {
-    'PST': '#5aa1d9',
-    'PRS': '#81b144',
-    'FTR': '#a155ab',
-    'BYD': '#d63d41',
-    'ETR': '#c4a1d1'
-};
+const diffColors = DIFFICULTY_COLORS;
 
 const formatScore = (score: number | null) => {
     if (score == null) return '-';

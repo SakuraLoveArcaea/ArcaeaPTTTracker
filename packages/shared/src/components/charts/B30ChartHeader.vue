@@ -7,14 +7,14 @@
             title="點擊查看詳細統計數據"
         >
             <h4 class="chart-title">
-                你的 B30 趨勢
+                你的 {{ modeName }} 趨勢
                 <i class="pi pi-info-circle info-icon"></i>
             </h4>
             <span class="chart-subtitle">點擊此處查看詳細統計數據（平均值、中位數、標準差）</span>
         </div>
         <div v-else class="header-left-stats-mobile">
             <h4 class="chart-title">
-                你的 B30 趨勢
+                你的 {{ modeName }} 趨勢
             </h4>
         </div>
         <div class="header-right-toggle" v-if="!isMobileView">
@@ -47,6 +47,10 @@ defineProps({
     showSinglePttLine: {
         type: Boolean,
         default: true
+    },
+    modeName: {
+        type: String,
+        default: 'B30'
     }
 });
 

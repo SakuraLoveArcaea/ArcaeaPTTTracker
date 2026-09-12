@@ -1,5 +1,5 @@
 <template>
-    <Chart :options="chartOptions"></Chart>
+    <Chart :options="chartOptions" :updateArgs="[true, true, false]"></Chart>
 </template>
 
 <script setup lang="ts">
@@ -46,6 +46,10 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    modeName: {
+        type: String,
+        default: 'B30'
+    },
     stats: {
         type: Object as PropType<{
             mean: number;
@@ -88,7 +92,7 @@ const chartOptions = computed(() => {
             dashStyle: 'Dash',
             zIndex: 4,
             label: {
-                text: `B30 平均: ${props.stats.mean.toFixed(4)}`,
+                text: `${props.modeName} 平均: ${props.stats.mean.toFixed(4)}`,
                 align: 'right',
                 x: -10,
                 style: {

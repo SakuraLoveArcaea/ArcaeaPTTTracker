@@ -119,8 +119,9 @@ import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
-import { Difficulty } from '@tracker/shared/utils/record';
+import { Difficulty, DIFFICULTY_COLORS } from '@tracker/shared/utils/record';
 import { calculatePlayPtt } from '@tracker/shared/utils/arcaeaRule';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
 
 const UIStore = useUIStore();
 const toast = useToast();
@@ -139,7 +140,9 @@ const playPtt = computed(() => {
     if (!record.value) return 0;
     const parsed = getParsedScore();
     if (parsed === null || isNaN(parsed)) return 0;
-    return calculatePlayPtt(record.value.constant, parsed);
+    const basePtt = calculatePlayPtt(record.value.constant, parsed);
+    const strategy = getPttStrategy(UIStore.pttMode);
+    return strategy.effectivePtt({ ...record.value, playPtt: basePtt });
 });
 
 // 儲存當前與原始位數的陣列。一般模式下長度為 7，PM 模式下長度為 4
@@ -149,13 +152,7 @@ const originalPmMode = ref(false);
 const cursorIndex = ref(0);
 const isPmMode = ref(false);
 
-const diffColors: Record<Difficulty, string> = {
-    'PST': '#5aa1d9',
-    'PRS': '#81b144',
-    'FTR': '#a155ab',
-    'BYD': '#d63d41',
-    'ETR': '#c4a1d1'
-};
+const diffColors = DIFFICULTY_COLORS;
 
 // 監聽對話框打開，預填分數與備份原始分數
 watch(() => UIStore.isScoreInputDialogOpen, (newVal) => {

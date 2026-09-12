@@ -83,13 +83,14 @@
 
 <script setup lang="ts">
 import { ref, PropType, watch, computed } from 'vue';
-import { Record } from '@tracker/shared/utils/record';
+import { Record, Difficulty, DIFFICULTY_COLORS } from '@tracker/shared/utils/record';
 import Menu from 'primevue/menu';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import { useUIStore } from '@tracker/shared/stores/uiStore';
 import { useRecordsStore } from '@tracker/shared/stores/recordsStore';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
 import MobileCard from './MobileCard.vue';
 
 const searchQuery = defineModel('searchQuery', { type: String, default: '' });

@@ -25,6 +25,7 @@
         <DataTable
             :value="records"
             :loading="isLoading"
+            :row-class="getRowClass"
             size="small"
             sort-field="playPtt"
             :sort-order="-1"
@@ -47,11 +48,11 @@
                 </template>
                 <template #body="{ data }">
                     <Button v-if="deletable" class="body delete-btn" @click="requestDelete(data)" title="點擊刪除此成績" variant="text" severity="secondary">
-                        <span class="rank-text">{{ getRealRankIndex(data) >= 0 && getRealRankIndex(data) < 30 ? getRealRankIndex(data) + 1 : '-' }}</span>
+                        <span class="rank-text">{{ getRealRankIndex(data) >= 0 && getRealRankIndex(data) < topN ? getRealRankIndex(data) + 1 : '-' }}</span>
                         <i class="pi pi-trash delete-icon"></i>
                     </Button>
                     <span v-else class="body plain-rank-text" :class="{ 'top-three': getRealRankIndex(data) >= 0 && getRealRankIndex(data) < 3 }">
-                        {{ getRealRankIndex(data) >= 0 && getRealRankIndex(data) < 30 ? getRealRankIndex(data) + 1 : '-' }}
+                        {{ getRealRankIndex(data) >= 0 && getRealRankIndex(data) < topN ? getRealRankIndex(data) + 1 : '-' }}
                     </span>
                 </template>
             </Column>
@@ -63,6 +64,7 @@
                 </template>
                 <template #body="{ data }">
                     <span 
+                        :id="'record-card-' + data.id"
                         class="body title-span" 
                         :style="getTitleStyle(data.lastUpdate)"
                         :class="{ 'linked-record': data.autoUpdate }"
@@ -100,7 +102,15 @@
             </Column>
 
             <!-- 4. 難度 欄位 -->
-            <Column v-if="visibleColumns.includes('difficulty')" key="difficulty" field="difficulty" class="column-difficulty" style="width: 8rem">
+            <Column 
+                v-if="visibleColumns.includes('difficulty')" 
+                key="difficulty" 
+                field="difficulty" 
+                class="column-difficulty" 
+                style="width: 8rem"
+                sortable
+                :sortFunction="sortDifficulty"
+            >
                 <template #header>
                     <span class="header">難度</span>
                 </template>
@@ -153,7 +163,7 @@
                     <span class="header">playPtt</span>
                 </template>
                 <template #body="{ data }">
-                    <span class="body ptt-text">{{ data.playPtt.toFixed(4) }}</span>
+                    <span class="body ptt-text">{{ getPttStrategy(UIStore.pttMode).effectivePtt(data).toFixed(4) }}</span>
                 </template>
             </Column>
         </DataTable>
@@ -227,13 +237,14 @@
 </template>
 
 <script setup lang="ts">
-import { type PropType, ref } from "vue";
+import { type PropType, ref, computed } from "vue";
 import { Difficulty, type Record } from "@tracker/shared/utils/record";
 import DataTable from "primevue/datatable";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import Column from "primevue/column";
 import Select from "primevue/select";
+import SelectButton from "primevue/selectbutton";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import { useToast } from "primevue/usetoast";
@@ -241,15 +252,24 @@ import { useUIStore } from "@tracker/shared/stores/uiStore";
 import { useRecordsStore } from "@tracker/shared/stores/recordsStore";
 import { useConfirm } from "primevue/useconfirm";
 import DesktopActions from "./DesktopActions.vue";
+import { getPttStrategy } from "@tracker/shared/utils/pttStrategy";
 
 const UIStore = useUIStore();
 const recordsStore = useRecordsStore();
 const confirm = useConfirm();
 
+const topN = computed(() => getPttStrategy(UIStore.pttMode).topN);
+
 const searchQuery = defineModel('searchQuery', { type: String, default: '' });
 
 const getRealRankIndex = (record: Record) => {
     return recordsStore.records.findIndex(r => r.id === record.id);
+};
+
+const getRowClass = (data: Record) => {
+    return {
+        'highlight-flash-row': UIStore.highlightedRecordId === data.id
+    };
 };
 
 const props = defineProps({
@@ -293,14 +313,10 @@ const emit = defineEmits<{
 
 const toast = useToast();
 
-const difficulties = ref<Difficulty[]>(['PST', 'PRS', 'FTR', 'BYD', 'ETR']);
-const diffColors: Record<Difficulty, string> = {
-    'PST': '#5aa1d9',
-    'PRS': '#81b144',
-    'FTR': '#a155ab',
-    'BYD': '#d63d41',
-    'ETR': '#c4a1d1'
-};
+import { DIFFICULTY_COLORS } from "@tracker/shared/utils/record";
+
+const difficulties = ref<Difficulty[]>(['PST', 'PRS', 'FTR', 'ETR', 'BYD', 'INS']);
+const diffColors = DIFFICULTY_COLORS;
 
 // 行內編輯狀態管理
 const isEditing = ref(false);
@@ -919,6 +935,20 @@ const handleUnlinkCurrentSong = () => {
   
   .dialog-btn {
     flex: 1;
+  }
+}
+
+:deep(tr.highlight-flash-row) {
+  animation: flash-row 2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes flash-row {
+  0% {
+    background-color: rgba(59, 130, 246, 0.28) !important;
+    box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.45);
+  }
+  100% {
+    background-color: transparent;
   }
 }
 </style>

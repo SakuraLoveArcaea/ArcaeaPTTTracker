@@ -10,12 +10,26 @@
                     <span class="detail-label">時長:</span>
                     <span class="detail-val">{{ song.duration || 'N/A' }}</span>
                 </div>
-                <div class="detail-cell">
+                <div v-if="song.version_added" class="detail-cell">
                     <span class="detail-label">版本:</span>
-                    <span class="detail-val">v{{ song.version || 'N/A' }}</span>
+                    <span class="detail-val">v{{ song.version_added }}</span>
                 </div>
             </div>
-            <div v-if="song.aliases && song.aliases.length" class="details-aliases">
+            
+            <!-- 附加難度詳細 (例如: INS: 12 (12.0), BYD1 [Moment]: 9 (9.6)) -->
+            <div v-if="formattedExtras" class="details-row">
+                <span class="detail-label">附加譜面:</span>
+                <span class="detail-val">{{ formattedExtras }}</span>
+            </div>
+
+            <!-- 追加難度版本 (例如: ETR: v5.4.0) -->
+            <div v-if="formattedDiffUpdates" class="details-row">
+                <span class="detail-label">追加記錄:</span>
+                <span class="detail-val">{{ formattedDiffUpdates }}</span>
+            </div>
+
+            <!-- 別名 -->
+            <div v-if="song.aliases && song.aliases.length" class="details-row">
                 <span class="detail-label">別名:</span>
                 <span class="detail-val font-italic">{{ song.aliases.join(', ') }}</span>
             </div>
@@ -24,12 +38,29 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Song } from '@tracker/shared/utils/songDatabase';
 
-defineProps<{
+const props = defineProps<{
     song: Song;
     show: boolean;
 }>();
+
+const formattedExtras = computed(() => {
+    if (!props.song.extras || props.song.extras.length === 0) return null;
+    return props.song.extras.map(e => {
+        const namePart = e.name ? ` [${e.name}]` : '';
+        const constPart = e.constant !== undefined ? ` (${e.constant.toFixed(1)})` : '';
+        return `${e.type}${namePart}: Lv.${e.level}${constPart}`;
+    }).join(', ');
+});
+
+const formattedDiffUpdates = computed(() => {
+    if (!props.song.diff_updates) return null;
+    const entries = Object.entries(props.song.diff_updates);
+    if (entries.length === 0) return null;
+    return entries.map(([diff, ver]) => `${diff} (v${ver})`).join(', ');
+});
 </script>
 
 <style scoped lang="scss">
@@ -53,7 +84,8 @@ defineProps<{
     }
 }
 
-.details-aliases {
+.details-aliases,
+.details-row {
     display: flex;
     gap: 0.3rem;
     margin-top: 0.25rem;

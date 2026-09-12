@@ -4,8 +4,9 @@ import { type Record } from '@tracker/shared/utils/record';
 import { fetchRecords, addRecordDataByRecord, deleteRecordDataByRecord, modifyRecordByRecord } from '@tracker/shared/utils/firestoreClient';
 import { downloadFile } from '@tracker/shared/utils/file';
 import { useAuthStore } from './authStore';
-import {useUIStore} from "./uiStore";
-import {calculatePlayPtt} from "@tracker/shared/utils/arcaeaRule";
+import { useUIStore } from './uiStore';
+import { calculatePlayPtt } from '@tracker/shared/utils/arcaeaRule';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
 
 const LOCAL_STORAGE_KEY = 'arcaea_local_records';
 
@@ -19,21 +20,21 @@ export const useRecordsStore = defineStore('records', () => {
     const recordToDelete = ref<Record | null>(null);
 
     const b30Avg = computed(() => {
-        if (records.value.length === 0) return 0;
-        const b30 = records.value.slice(0, 30);
-        const sum = b30.reduce((acc, cur) => acc + cur.playPtt, 0);
-        return sum / 30;
+        const strategy = getPttStrategy(UIStore.pttMode);
+        const { mainAvg } = strategy.calcOverallPtt(records.value);
+        return mainAvg;
     });
 
     const r10Avg = computed(() => {
-        if (records.value.length === 0) return 0;
-        const b10 = records.value.slice(0, 10);
-        const sum = b10.reduce((acc, cur) => acc + cur.playPtt, 0);
-        return sum / (b10.length === 10 ? 10 : b10.length);
+        const strategy = getPttStrategy(UIStore.pttMode);
+        const { subAvg } = strategy.calcOverallPtt(records.value);
+        return subAvg;
     });
 
     const maxPtt = computed(() => {
-        return (b30Avg.value * 30 + r10Avg.value * 10) / 40;
+        const strategy = getPttStrategy(UIStore.pttMode);
+        const { overall } = strategy.calcOverallPtt(records.value);
+        return overall;
     });
 
     // locals
@@ -75,7 +76,7 @@ export const useRecordsStore = defineStore('records', () => {
         if (authStore.currentUser) {
             try {
                 await addRecordDataByRecord(authStore.currentUser, newRecord);
-                UIStore.showToast('success', '新增成功', `${newRecord.title} 已儲存至雲端，排在第 ${newRankIndex + 1} 名`);
+                UIStore.showToast('success', '新增成功', `${newRecord.title} 已儲存至雲端，排在第 ${newRankIndex + 1} 名`, 6000, newRecord.id);
             } catch (error: any) {
                 UIStore.showToast('error', '新增失敗', error.message);
                 // 失敗則還原 UI
@@ -83,7 +84,7 @@ export const useRecordsStore = defineStore('records', () => {
             }
         } else {
             saveLocalRecords(records.value);
-            UIStore.showToast('success', '新增成功', `${newRecord.title} 已暫存於本機，排在第 ${newRankIndex + 1} 名`);
+            UIStore.showToast('success', '新增成功', `${newRecord.title} 已暫存於本機，排在第 ${newRankIndex + 1} 名`, 6000, newRecord.id);
         }
     };
 
@@ -121,7 +122,7 @@ export const useRecordsStore = defineStore('records', () => {
             try {
                 await modifyRecordByRecord(authStore.currentUser, newRecord);
                 if (onSuccess) onSuccess();
-                UIStore.showToast('success', contextMsg, `${newRecord.title} 已更新至雲端${rankText}`);
+                UIStore.showToast('success', contextMsg, `${newRecord.title} 已更新至雲端${rankText}`, 6000, newRecord.id);
             } catch (error: any) {
                 if (onError) onError();
                 UIStore.showToast('error', '更新失敗', error.message);
@@ -133,7 +134,7 @@ export const useRecordsStore = defineStore('records', () => {
         } else {
             saveLocalRecords(records.value);
             if (onSuccess) onSuccess();
-            UIStore.showToast('success', contextMsg, `${newRecord.title} 已暫存於本機${rankText}`);
+            UIStore.showToast('success', contextMsg, `${newRecord.title} 已暫存於本機${rankText}`, 6000, newRecord.id);
         }
     };
 

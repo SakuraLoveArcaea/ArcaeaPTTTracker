@@ -6,6 +6,7 @@
             :isMobileView="isMobileView"
             :showSongNamesOnX="showSongNamesOnX"
             :showSinglePttLine="showSinglePttLine"
+            :modeName="strategy.name"
             @click-title="showStatsDialog = true"
             @toggle-xaxis="toggleXAxisMode"
         />
@@ -22,6 +23,7 @@
                 :showMedianLine="showMedianLine"
                 :showSinglePttLine="showSinglePttLine"
                 :showSongNamesOnX="showSongNamesOnX"
+                :modeName="strategy.name"
                 :stats="stats"
                 @toggle-single-ptt="showSinglePttLine = !showSinglePttLine"
                 @toggle-mean="showMeanLine = !showMeanLine"
@@ -32,7 +34,7 @@
                 <span>📊 資料載入中，請稍候...</span>
             </div>
             <div v-else class="loading-overlay">
-                <span>📭 暫無 B30 成績數據</span>
+                <span>📭 暫無 {{ strategy.name }} 成績數據</span>
             </div>
         </div>
 
@@ -40,13 +42,15 @@
         <B30StatsCards
             v-if="chartData.length > 0 && isMobileView"
             :stats="stats"
+            :modeName="strategy.name"
             size="small"
         />
 
-        <!-- B30 詳細統計對話框 -->
+        <!-- B30/B50 詳細統計對話框 -->
         <B30StatsDialog
             v-model:visible="showStatsDialog"
             :stats="stats"
+            :modeName="strategy.name"
         />
     </div>
 </template>
@@ -58,6 +62,7 @@ import { useRecordsStore } from "@tracker/shared/stores/recordsStore";
 import { useUIStore } from "@tracker/shared/stores/uiStore";
 import { storeToRefs } from "pinia";
 import { type Record } from '@tracker/shared/utils/record';
+import { getPttStrategy } from '@tracker/shared/utils/pttStrategy';
 
 // 引入原子化/展示型子組件
 import B30Highchart from './B30Highchart.vue';
@@ -76,6 +81,9 @@ const recordsStore = useRecordsStore();
 const UIStore = useUIStore();
 const { records } = storeToRefs(recordsStore);
 const { isDarkTheme } = storeToRefs(UIStore);
+
+// 根據 pttMode 取得當前策略
+const strategy = computed(() => getPttStrategy(UIStore.pttMode));
 
 // 動態響應式高度與手機檢視管理
 const isMobileView = computed(() => UIStore.isMobile);
@@ -123,37 +131,7 @@ const stats = computed(() => {
 });
 
 const handleJumpToRecord = (recordId: string) => {
-    // 1. 切換分頁到表格
-    UIStore.activeTab = 'table';
-    
-    // 2. 設定展開與選中高亮狀態
-    UIStore.expandedRecordId = recordId;
-    UIStore.highlightedRecordId = recordId;
-    
-    // 3. 等待 DOM 渲染完畢後，執行平滑滾動
-    nextTick(() => {
-        const scrollAndFocus = () => {
-            const cardEl = document.getElementById(`record-card-${recordId}`);
-            if (cardEl) {
-                cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return true;
-            }
-            return false;
-        };
-        
-        // 延遲重試以防 Tabs 切換動畫尚未完成導致 DOM 尚未完全渲染
-        if (!scrollAndFocus()) {
-            setTimeout(scrollAndFocus, 100);
-            setTimeout(scrollAndFocus, 300);
-        }
-    });
-    
-    // 4. 2秒後移除高亮效果，觸發動畫漸變復原
-    setTimeout(() => {
-        if (UIStore.highlightedRecordId === recordId) {
-            UIStore.highlightedRecordId = null;
-        }
-    }, 2000);
+    UIStore.jumpToRecord(recordId);
 };
 
 onMounted(() => {
@@ -177,10 +155,13 @@ const activeRecords = computed(() => {
 const chartData = computed(() => {
     if (!activeRecords.value || activeRecords.value.length === 0) return [];
 
-    // 依據 playPtt 降序排序，取前 30 筆
-    const sorted = [...activeRecords.value].sort((a, b) => b.playPtt - a.playPtt);
+    const strat = strategy.value;
+    // 依據有效 PTT 降序排序，取前 topN 筆
+    const sorted = [...activeRecords.value].sort(
+        (a, b) => strat.effectivePtt(b) - strat.effectivePtt(a)
+    );
 
-    return sorted.slice(0, 30).map((record) => {
+    return sorted.slice(0, strat.topN).map((record, index) => {
         // 標準化 Arcaea 分數表達：如果是小數格式則乘以 10000 變成整數
         let scoreVal = record.score || 0;
         if (scoreVal <= 1005) {
@@ -190,7 +171,8 @@ const chartData = computed(() => {
         }
 
         return {
-            y: record.playPtt,
+            x: index,
+            y: strat.effectivePtt(record),
             title: record.title || '未知',
             constant: record.constant || 0,
             score: scoreVal,

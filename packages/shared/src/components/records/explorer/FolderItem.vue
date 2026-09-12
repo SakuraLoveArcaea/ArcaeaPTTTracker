@@ -15,9 +15,9 @@
             <div class="folder-title-right">
                 <!-- 歌曲數量在右邊，小字 -->
                 <span v-if="count !== undefined" :class="isSubfolder ? 'subsong-count' : 'song-count'">({{ count }})</span>
-                <!-- 版本號徽章（貼右邊，展開箭頭的左邊） -->
+                <!-- 版本號或分類徽章（貼右邊，展開箭頭的左邊） -->
                 <span v-if="isSubfolder" class="subfolder-version-badge">{{ title }}</span>
-                <span v-if="!isSubfolder && badge" class="pack-version-badge">v{{ badge }}</span>
+                <span v-if="!isSubfolder && badge && badge !== '0.0.0' && badge !== 'Others'" class="pack-version-badge">{{ formattedBadge }}</span>
                 <i :class="chevronIconClass"></i>
             </div>
         </div>
@@ -39,15 +39,28 @@ const props = withDefaults(defineProps<{
     title: string;
     count?: number;
     badge?: string | null;
+    icon?: string;
     isSubfolder?: boolean;
 }>(), {
     isSubfolder: false,
-    badge: null
+    badge: null,
+    icon: ''
 });
 
 const emit = defineEmits(['toggle']);
 
+const formattedBadge = computed(() => {
+    if (!props.badge) return '';
+    if (props.badge.startsWith('v') || props.badge.startsWith('V') || isNaN(Number(props.badge.charAt(0)))) {
+        return props.badge;
+    }
+    return `v${props.badge}`;
+});
+
 const folderIconClass = computed(() => {
+    if (props.icon) {
+        return `${props.icon} ${props.isSubfolder ? 'subfolder-icon' : 'folder-icon'} ${props.isOpen ? 'active' : ''}`;
+    }
     if (props.isSubfolder) {
         return props.isOpen 
             ? 'pi pi-folder-open subfolder-icon active' 

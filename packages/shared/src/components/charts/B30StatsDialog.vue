@@ -1,14 +1,14 @@
 <template>
     <Dialog
         v-model:visible="dialogVisible"
-        header="B30 詳細統計數據"
+        :header="`${modeName} 詳細統計數據`"
         modal
         :draggable="false"
         :dismissableMask="true"
         class="stats-dialog"
         style="width: 90%; max-width: 400px;"
     >
-        <B30StatsCards :stats="stats" size="large" />
+        <B30StatsCards :stats="stats" :modeName="modeName" size="large" />
         <template #footer>
             <Button label="關閉" outlined severity="secondary" @click="dialogVisible = false" class="close-btn" />
         </template>
@@ -35,6 +35,10 @@ const props = defineProps({
             max: number;
         }>,
         required: true
+    },
+    modeName: {
+        type: String,
+        default: 'B30'
     }
 });
 

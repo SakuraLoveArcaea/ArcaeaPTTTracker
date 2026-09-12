@@ -56,6 +56,22 @@
                 />
             </div>
 
+            <!-- PTT 計算模式 -->
+            <div class="settings-row">
+                <span class="settings-label">
+                    <i class="pi pi-calculator settings-icon"></i>PTT 計算模式
+                </span>
+                <SelectButton
+                    v-model="UIStore.pttMode"
+                    :options="pttModeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    @change="onPttModeChange"
+                    :allowEmpty="false"
+                    size="small"
+                />
+            </div>
+
             <div class="settings-divider"></div>
 
             <!-- 曲包瀏覽：顯示 PST, PRS -->
@@ -133,6 +149,15 @@ const onShowPstPrsChange = () => {
 
 const onShowScoresAboveBadgesChange = () => {
     localStorage.setItem('arcaea_explorer_show_scores_above_badges', String(UIStore.showScoresAboveBadges));
+};
+
+const pttModeOptions = ref([
+    { label: 'B30', value: 'b30' },
+    { label: 'B50', value: 'b50' }
+]);
+
+const onPttModeChange = () => {
+    localStorage.setItem('arcaea_ptt_mode', UIStore.pttMode);
 };
 
 
